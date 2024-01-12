@@ -7,13 +7,13 @@ import java.util.Stack
 typealias PieceList = List<Piece>
 
 class ReversiBoard(
-    val length: Int = 8,
+    val width: Int = 8,
     val undoLimit: Int = 1024,
 ) {
     private val dx = arrayOf(0, 1, 1, 1, 0, -1, -1, -1)
     private val dy = arrayOf(1, 1, 0, -1, -1, -1, 0, 1)
 
-    var elements: PieceList = List(length * length) { Empty }
+    var elements: PieceList = List(width * width) { Empty }
         private set
     private val undoDeque = ArrayDeque<PieceList>()
     private val redoStack = Stack<PieceList>()
@@ -21,7 +21,7 @@ class ReversiBoard(
     operator fun get(x: Int, y: Int) = elements[x, y]
 
     fun updateBoard(newBoard: PieceList) {
-        require(newBoard.size == length * length) { "Invalid length" }
+        require(newBoard.size == width * width) { "Invalid length" }
         undoDeque.addLast(elements)
         elements = newBoard
         redoStack.clear()
@@ -52,8 +52,8 @@ class ReversiBoard(
                 val nextX = x + dx[i] * j
                 val nextY = y + dy[i] * j
                 if (
-                    nextX !in 0 until length ||
-                    nextY !in 0 until length ||
+                    nextX !in 0 until width ||
+                    nextY !in 0 until width ||
                     nextBoard[nextX, nextY] == Empty
                 ) return@repeat
                 if (nextBoard[nextX, nextY] == piece)
@@ -68,11 +68,11 @@ class ReversiBoard(
 
     fun reset() {
         val nextBoard = elements.toMutableList()
-        repeat(length * length) { nextBoard[it] = Empty }
-        nextBoard[length / 2 - 1, length / 2 - 1] = White
-        nextBoard[length / 2 - 1, length / 2] = Black
-        nextBoard[length / 2, length / 2 - 1] = Black
-        nextBoard[length / 2, length / 2] = White
+        repeat(width * width) { nextBoard[it] = Empty }
+        nextBoard[width / 2 - 1, width / 2 - 1] = White
+        nextBoard[width / 2 - 1, width / 2] = Black
+        nextBoard[width / 2, width / 2 - 1] = Black
+        nextBoard[width / 2, width / 2] = White
         updateBoard(nextBoard)
     }
 
