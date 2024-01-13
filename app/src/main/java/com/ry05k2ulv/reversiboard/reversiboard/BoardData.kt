@@ -12,7 +12,7 @@ data class BoardData(
             if (!elements[i].isEmpty()) return@repeat
             val x = i % boardWidth
             val y = i / boardWidth
-            repeat(8) { j ->
+            repeat(8) canDrop@ { j ->
                 var k = 1
                 while (true) {
                     val nextX = x + dx[j] * k
@@ -21,13 +21,15 @@ data class BoardData(
                         nextX !in 0 until boardWidth ||
                         nextY !in 0 until boardWidth ||
                         elements[nextX, nextY].isEmpty()
-                    ) return@repeat
+                    ) return@canDrop
                     if (elements[nextX, nextY] == piece)
                         break
                     k++
                 }
-                if (k > 1)
+                if (k > 1) {
                     canDropList.add(i)
+                    return@repeat
+                }
             }
         }
         return canDropList
