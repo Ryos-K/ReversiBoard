@@ -73,41 +73,68 @@ fun PieceSample(
 ) {
     Canvas(modifier) {
         val length = minOf(size.width, size.height)
-        val cellLength = length * 0.9f
+        val cellLength = length * 0.8f
+
         // Draw background
-        drawRect(
-            Color(0xFF0BA80B)
-        )
-        // Draw vertical lines
-        var x = (size.width % (cellLength * 2) - cellLength) / 2
-        if (x < 0) x += cellLength
-        while (x < size.width) {
-            drawLine(
-                Color.Black,
-                start = Offset(x, 0f),
-                end = Offset(x, size.height),
-                strokeWidth = 3.dp.toPx()
-            )
-            x += cellLength
-        }
-        // Draw horizontal lines
-        var y = (size.height % (cellLength * 2) - cellLength) / 2
-        if (y < 0) y += cellLength
-        while (y < size.height) {
-            drawLine(
-                Color.Black,
-                start = Offset(0f, y),
-                end = Offset(size.width, y),
-                strokeWidth = 3.dp.toPx()
-            )
-            y += cellLength
-        }
+        drawSampleBoard()
         // Draw Piece
         when (piece) {
             Piece.Black -> drawBlackPiece(cellLength * 0.4f, center = center)
             Piece.White -> drawWhitePiece(cellLength * 0.4f, center = center)
             else -> Unit
         }
+    }
+}
+
+@Composable
+fun MarkSample(
+    modifier: Modifier = Modifier,
+    markType: MarkType = MarkType.Circle,
+) {
+    Canvas(modifier) {
+        val length = minOf(size.width, size.height)
+        val cellLength = length * 0.8f
+
+        // Draw background
+        drawSampleBoard()
+        // Draw Mark
+        when (markType) {
+            MarkType.Circle -> drawCircleMark(cellLength * 0.35f, center)
+            MarkType.Cross -> drawCrossMark(cellLength * 0.3f, center)
+        }
+    }
+}
+
+fun DrawScope.drawSampleBoard() {
+    val length = minOf(size.width, size.height)
+    val cellLength = length * 0.8f
+    // Draw background
+    drawRect(
+        Color(0xFF0BA80B)
+    )
+    // Draw vertical lines
+    var x = (size.width % (cellLength * 2) - cellLength) / 2
+    if (x < 0) x += cellLength
+    while (x < size.width) {
+        drawLine(
+            Color.Black,
+            start = Offset(x, 0f),
+            end = Offset(x, size.height),
+            strokeWidth = 3.dp.toPx()
+        )
+        x += cellLength
+    }
+    // Draw horizontal lines
+    var y = (size.height % (cellLength * 2) - cellLength) / 2
+    if (y < 0) y += cellLength
+    while (y < size.height) {
+        drawLine(
+            Color.Black,
+            start = Offset(0f, y),
+            end = Offset(size.width, y),
+            strokeWidth = 3.dp.toPx()
+        )
+        y += cellLength
     }
 }
 
@@ -330,6 +357,20 @@ private fun PieceSamplePreview() {
                     .aspectRatio(1.5f)
                     .fillMaxWidth(),
                 Piece.Black
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun MarkSamplePreview() {
+    ReversiBoardTheme {
+        Surface {
+            MarkSample(
+                Modifier
+                    .aspectRatio(1.5f)
+                    .fillMaxWidth(),
             )
         }
     }

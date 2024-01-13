@@ -1,7 +1,14 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
+private fun elementsDefault() = MutableList(boardArea) { Piece.Empty }.apply {
+    this[boardWidth / 2 - 1, boardWidth / 2 - 1] = Piece.White
+    this[boardWidth / 2 - 1, boardWidth / 2] = Piece.Black
+    this[boardWidth / 2, boardWidth / 2 - 1] = Piece.Black
+    this[boardWidth / 2, boardWidth / 2] = Piece.White
+}
+
 data class BoardData(
-    val elements: List<Piece> = List(boardArea) { Piece.Empty },
+    val elements: List<Piece> = elementsDefault()
 ) {
     val blackCanDropList: List<Int> = canDropList(Piece.Black)
     val whiteCanDropList: List<Int> = canDropList(Piece.White)
@@ -12,7 +19,7 @@ data class BoardData(
             if (!elements[i].isEmpty()) return@repeat
             val x = i % boardWidth
             val y = i / boardWidth
-            repeat(8) canDrop@ { j ->
+            repeat(8) canDrop@{ j ->
                 var k = 1
                 while (true) {
                     val nextX = x + dx[j] * k

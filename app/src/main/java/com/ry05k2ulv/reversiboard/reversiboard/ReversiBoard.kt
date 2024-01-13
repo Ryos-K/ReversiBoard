@@ -52,8 +52,8 @@ class ReversiBoard(
     }
 
     fun drop(piece: Piece, x: Int, y: Int, overwrite: Boolean = false, reversible: Boolean = true) {
+        if (boardData.elements[x, y] != Empty && !overwrite || boardData.elements[x, y] == piece) return
         val elements = boardData.elements.toMutableList()
-        if (elements[x, y] != Empty && !overwrite) return
         elements[x, y] = piece
         if (!reversible) return
         /* nextBoard[x, y] == Empty && reversible */
