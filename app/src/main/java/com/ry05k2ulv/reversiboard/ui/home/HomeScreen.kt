@@ -2,6 +2,9 @@ package com.ry05k2ulv.reversiboard.ui.home
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -47,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
 import com.ry05k2ulv.reversiboard.ui.components.Board
+import com.ry05k2ulv.reversiboard.ui.components.Mark
 import com.ry05k2ulv.reversiboard.ui.components.MarkSample
 import com.ry05k2ulv.reversiboard.ui.components.MarkType
 import com.ry05k2ulv.reversiboard.ui.components.PieceSample
@@ -61,6 +66,8 @@ fun HomeScreen(
     var markMode by remember { mutableStateOf(false) }
     var currentPiece by remember { mutableStateOf(Piece.Black) }
     var currentMark by remember { mutableStateOf(MarkType.Circle) }
+
+    var markList by remember { mutableStateOf(emptyList<Mark>()) }
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -107,12 +114,13 @@ fun HomeScreen(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp, 4.dp)
-                    .height(48.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .height(48.dp)
+                    .horizontalScroll(rememberScrollState()),
             ) {
                 MarkType.values().forEach { mark ->
                     MarkSample(
                         Modifier
+                            .padding(16.dp, 0.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .fillMaxHeight()
                             .aspectRatio(1.5f)
@@ -144,7 +152,7 @@ fun HomeScreen(
             },
         ) { x: Int, y: Int ->
             if (markMode) {
-                TODO()
+                markList = markList.toMutableList().apply { add(Mark(currentMark, x, y)) }
             } else {
                 viewModel.dropPiece(currentPiece, x, y, false, true)
             }

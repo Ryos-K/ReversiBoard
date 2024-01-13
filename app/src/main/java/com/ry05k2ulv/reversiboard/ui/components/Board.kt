@@ -7,15 +7,24 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ry05k2ulv.reversiboard.reversiboard.BoardData
@@ -27,6 +36,9 @@ import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 enum class MarkType {
     Circle,
     Cross,
+    Triangle,
+    Question,
+    Exclamation,
 }
 
 data class Mark(
@@ -43,6 +55,8 @@ fun Board(
     markList: List<Mark> = emptyList(),
     onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
+    val textMeasurer = rememberTextMeasurer()
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -61,7 +75,7 @@ fun Board(
         ) {
             drawBoard()
             drawPieces(pieceList, canDropList)
-            drawMarks(markList)
+            drawMarks(markList, textMeasurer)
         }
     }
 }
@@ -91,6 +105,8 @@ fun MarkSample(
     modifier: Modifier = Modifier,
     markType: MarkType = MarkType.Circle,
 ) {
+    val textMeasurer = rememberTextMeasurer()
+
     Canvas(modifier) {
         val length = minOf(size.width, size.height)
         val cellLength = length * 0.8f
@@ -101,6 +117,9 @@ fun MarkSample(
         when (markType) {
             MarkType.Circle -> drawCircleMark(cellLength * 0.35f, center)
             MarkType.Cross -> drawCrossMark(cellLength * 0.3f, center)
+            MarkType.Triangle -> drawTriangleMark(cellLength * 0.35f, center)
+            MarkType.Question -> drawQuestionMark(textMeasurer, cellLength * 0.4f, center)
+            MarkType.Exclamation -> drawExclamationMark(textMeasurer, cellLength * 0.4f, center)
         }
     }
 }
@@ -219,6 +238,7 @@ private fun DrawScope.drawPieces(
 
 private fun DrawScope.drawMarks(
     markList: List<Mark>,
+    textMeasurer: TextMeasurer,
 ) {
     val cellWidth = size.width / boardWidth
     val cellHeight = size.height / boardWidth
@@ -229,6 +249,9 @@ private fun DrawScope.drawMarks(
         when (type) {
             MarkType.Circle -> drawCircleMark(cellWidth * 0.35f, center)
             MarkType.Cross -> drawCrossMark(cellWidth * 0.3f, center)
+            MarkType.Triangle -> drawTriangleMark(cellWidth * 0.35f, center)
+            MarkType.Question -> drawQuestionMark(textMeasurer, cellWidth * 0.4f, center)
+            MarkType.Exclamation -> drawExclamationMark(textMeasurer, cellWidth * 0.4f, center)
         }
     }
 }
@@ -315,6 +338,51 @@ private fun DrawScope.drawCrossMark(
     )
 }
 
+private fun DrawScope.drawTriangleMark(
+    radius: Float = this.size.minDimension,
+    center: Offset = this.center,
+) {
+    val topVertex = center + Offset(0f, -radius * 0.866f)
+    val leftVertex = center + Offset(-radius, radius * 0.866f)
+    val rightVertex = center + Offset(radius, radius * 0.866f)
+    drawPath(
+        Path().apply {
+            moveTo(topVertex.x, topVertex.y)
+            lineTo(leftVertex.x, leftVertex.y)
+            lineTo(rightVertex.x, rightVertex.y)
+            close()
+        },
+        color = Color.Green,
+        style = Stroke(5.dp.toPx(), pathEffect = PathEffect.cornerPathEffect(4.dp.toPx()))
+    )
+}
+
+private fun DrawScope.drawQuestionMark(
+    textMeasurer: TextMeasurer,
+    radius: Float = this.size.minDimension,
+    center: Offset = this.center,
+) {
+    drawText(
+        textMeasurer,
+        "?",
+        center - Offset(radius, radius),
+        style = TextStyle(fontSize = (radius * 2).toSp(), color = Color.Magenta)
+    )
+}
+
+private fun DrawScope.drawExclamationMark(
+    textMeasurer: TextMeasurer,
+    radius: Float = this.size.minDimension,
+    center: Offset = this.center,
+) {
+    drawText(
+        textMeasurer,
+        "!",
+        center - Offset(radius, radius),
+        style = TextStyle(fontSize = (radius * 2).toSp(), color = Color.Magenta)
+    )
+}
+
 @Composable
 @Preview
 fun BoardPreview() {
@@ -324,6 +392,9 @@ fun BoardPreview() {
                 Mark(MarkType.Cross, 4, 4),
                 Mark(MarkType.Circle, 2, 1),
                 Mark(MarkType.Cross, 1, 2),
+                Mark(MarkType.Triangle, 6, 6),
+                Mark(MarkType.Question, 5, 6),
+                Mark(MarkType.Exclamation, 4, 6),
             )
             val boardData = BoardData(
                 MutableList(64) { Piece.Empty }
