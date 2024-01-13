@@ -20,36 +20,36 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ry05k2ulv.reversiboard.reversiboard.Piece
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 
-interface BoardState {
-    val markerList: List<Marker>
-    val showAssist: Boolean
-}
-
-class BoardStateImpl(
-    val width: Int = 8,
-) : BoardState {
-    private var _markerList = mutableStateOf(listOf<Marker>())
-    override var markerList: List<Marker>
-        get() = _markerList.value
-        set(value) {
-            _markerList.value = value
-        }
-
-    private var _showAssist = mutableStateOf(false)
-    override var showAssist: Boolean
-        get() = _showAssist.value
-        set(value) {
-            _showAssist.value = value
-        }
-}
+//interface BoardState {
+//    val markerList: List<Marker>
+//    val showAssist: Boolean
+//}
+//
+//class BoardStateImpl(
+//    val width: Int = 8,
+//) : BoardState {
+//    private var _markerList = mutableStateOf(listOf<Marker>())
+//    override var markerList: List<Marker>
+//        get() = _markerList.value
+//        set(value) {
+//            _markerList.value = value
+//        }
+//
+//    private var _showAssist = mutableStateOf(false)
+//    override var showAssist: Boolean
+//        get() = _showAssist.value
+//        set(value) {
+//            _showAssist.value = value
+//        }
+//}
 
 enum class MarkerType {
-    Empty,
-    Black,
-    White,
     CanDrop,
+    Circle,
+    Cross,
 }
 
 data class Marker(
@@ -61,9 +61,15 @@ data class Marker(
 @Composable
 fun Board(
     modifier: Modifier = Modifier,
-    boardState: BoardState = remember { BoardStateImpl() },
+    pieceList: List<Piece> = emptyList(),
+    markerList: List<Marker> = emptyList(),
+    showAssist: Boolean = true,
     onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
+    val filteredMarkerList =
+        if (showAssist) markerList
+        else markerList.filter { it.type != MarkerType.CanDrop }
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -82,8 +88,8 @@ fun Board(
         ) {
             drawBoard()
             drawMarker(
-                if (boardState.showAssist) boardState.markerList
-                else boardState.markerList.filter { it.type != MarkerType.CanDrop }
+                pieceList,
+                filteredMarkerList
             )
         }
     }
@@ -145,23 +151,34 @@ private fun DrawScope.drawBoard(
 }
 
 private fun DrawScope.drawMarker(
+    pieceList: List<Piece>,
     markerList: List<Marker>,
 ) {
     val cellWidth = size.width / 8
     val cellHeight = size.height / 8
 
+    pieceList.forEachIndexed { i, piece ->
+        val x = i % 8
+        val y = i / 8
+        val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
+        when (piece) {
+            Piece.Black -> drawBlackMarker(cellWidth * 0.4f, center)
+            Piece.White -> drawWhiteMarker(cellWidth * 0.4f, center)
+            else -> Unit
+        }
+    }
     markerList.forEach { marker ->
         val (type, x, y) = marker
         val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
         when (type) {
-            MarkerType.Black -> drawBlackMarker(cellWidth * 0.4f, center)
-            MarkerType.White -> drawWhiteMarker(cellWidth * 0.4f, center)
             MarkerType.CanDrop -> drawCanDropMarker(cellWidth * 0.2f, center)
-            else -> {
-            }
+            MarkerType.Circle -> drawCircleMarker(cellWidth * 0.35f, center)
+            MarkerType.Cross -> drawCrossMarker(cellWidth * 0.3f, center)
+            else -> Unit
         }
     }
 }
+
 
 private fun DrawScope.drawBlackMarker(
     radius: Float = this.size.minDimension,
@@ -214,28 +231,64 @@ private fun DrawScope.drawCanDropMarker(
     )
 }
 
+private fun DrawScope.drawCircleMarker(
+    radius: Float = this.size.minDimension,
+    center: Offset = this.center,
+) {
+    drawCircle(
+        Color.Blue,
+        radius = radius,
+        center = center,
+        style = Stroke(width = 5.dp.toPx())
+    )
+}
+
+private fun DrawScope.drawCrossMarker(
+    radius: Float = this.size.minDimension,
+    center: Offset = this.center,
+) {
+    drawLine(
+        Color.Red,
+        start = center - Offset(radius, radius),
+        end = center + Offset(radius, radius),
+        strokeWidth = 6.dp.toPx()
+    )
+    drawLine(
+        Color.Red,
+        start = center - Offset(radius, -radius),
+        end = center + Offset(radius, -radius),
+        strokeWidth = 6.dp.toPx()
+    )
+}
+
 @Composable
 @Preview
 fun BoardPreview() {
     ReversiBoardTheme {
         Surface {
-            val boardState = remember { BoardStateImpl() }
-            boardState.markerList = listOf(
-                Marker(MarkerType.White, 3, 3),
-                Marker(MarkerType.Black, 3, 4),
-                Marker(MarkerType.Black, 4, 3),
-                Marker(MarkerType.White, 4, 4),
+            val markerList = listOf(
+                Marker(MarkerType.Cross, 4, 4),
                 Marker(MarkerType.CanDrop, 2, 3),
                 Marker(MarkerType.CanDrop, 3, 2),
                 Marker(MarkerType.CanDrop, 4, 5),
                 Marker(MarkerType.CanDrop, 5, 4),
+                Marker(MarkerType.Circle, 2, 1),
+                Marker(MarkerType.Cross, 1, 2),
             )
-            boardState.showAssist = false
+            val pieceList = MutableList(64) { Piece.Empty }
+                .apply {
+                    this[27] = Piece.White
+                    this[28] = Piece.Black
+                    this[35] = Piece.Black
+                    this[36] = Piece.White
+                }
             Board(
                 Modifier
                     .aspectRatio(1f)
                     .fillMaxWidth(),
-                boardState
+                pieceList,
+                markerList,
+                showAssist = true
             )
         }
     }
