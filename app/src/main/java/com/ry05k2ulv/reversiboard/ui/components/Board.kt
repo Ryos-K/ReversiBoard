@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -20,40 +18,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ry05k2ulv.reversiboard.reversiboard.BoardData
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
+import com.ry05k2ulv.reversiboard.reversiboard.boardArea
+import com.ry05k2ulv.reversiboard.reversiboard.boardWidth
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 
-//interface BoardState {
-//    val markerList: List<Marker>
-//    val showAssist: Boolean
-//}
-//
-//class BoardStateImpl(
-//    val width: Int = 8,
-//) : BoardState {
-//    private var _markerList = mutableStateOf(listOf<Marker>())
-//    override var markerList: List<Marker>
-//        get() = _markerList.value
-//        set(value) {
-//            _markerList.value = value
-//        }
-//
-//    private var _showAssist = mutableStateOf(false)
-//    override var showAssist: Boolean
-//        get() = _showAssist.value
-//        set(value) {
-//            _showAssist.value = value
-//        }
-//}
-
-enum class MarkerType {
-    CanDrop,
+enum class MarkType {
     Circle,
     Cross,
 }
 
-data class Marker(
-    val type: MarkerType,
+data class Mark(
+    val type: MarkType,
     val x: Int,
     val y: Int,
 )
@@ -61,15 +38,11 @@ data class Marker(
 @Composable
 fun Board(
     modifier: Modifier = Modifier,
-    pieceList: List<Piece> = emptyList(),
-    markerList: List<Marker> = emptyList(),
-    showAssist: Boolean = true,
+    pieceList: List<Piece> = List(64) { Piece.Empty },
+    canDropList: List<Int> = emptyList(),
+    markList: List<Mark> = emptyList(),
     onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
-    val filteredMarkerList =
-        if (showAssist) markerList
-        else markerList.filter { it.type != MarkerType.CanDrop }
-
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -87,10 +60,53 @@ fun Board(
                 }
         ) {
             drawBoard()
-            drawMarker(
-                pieceList,
-                filteredMarkerList
+            drawPieces(pieceList, canDropList)
+            drawMarks(markList)
+        }
+    }
+}
+
+@Composable
+fun PieceSample(
+    modifier: Modifier = Modifier,
+    piece: Piece = Piece.Empty,
+) {
+    Canvas(modifier) {
+        val length = minOf(size.width, size.height)
+        val cellLength = length * 0.9f
+        // Draw background
+        drawRect(
+            Color(0xFF0BA80B)
+        )
+        // Draw vertical lines
+        var x = (size.width % (cellLength * 2) - cellLength) / 2
+        if (x < 0) x += cellLength
+        while (x < size.width) {
+            drawLine(
+                Color.Black,
+                start = Offset(x, 0f),
+                end = Offset(x, size.height),
+                strokeWidth = 3.dp.toPx()
             )
+            x += cellLength
+        }
+        // Draw horizontal lines
+        var y = (size.height % (cellLength * 2) - cellLength) / 2
+        if (y < 0) y += cellLength
+        while (y < size.height) {
+            drawLine(
+                Color.Black,
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 3.dp.toPx()
+            )
+            y += cellLength
+        }
+        // Draw Piece
+        when (piece) {
+            Piece.Black -> drawBlackPiece(cellLength * 0.4f, center = center)
+            Piece.White -> drawWhitePiece(cellLength * 0.4f, center = center)
+            else -> Unit
         }
     }
 }
@@ -150,37 +166,48 @@ private fun DrawScope.drawBoard(
     )
 }
 
-private fun DrawScope.drawMarker(
-    pieceList: List<Piece>,
-    markerList: List<Marker>,
+private fun DrawScope.drawPieces(
+    pieceList: List<Piece> = List(boardArea) { Piece.Empty },
+    canDropList: List<Int> = emptyList(),
 ) {
-    val cellWidth = size.width / 8
-    val cellHeight = size.height / 8
-
+    val cellWidth = size.width / boardWidth
+    val cellHeight = size.height / boardWidth
     pieceList.forEachIndexed { i, piece ->
-        val x = i % 8
-        val y = i / 8
+        val x = i % boardWidth
+        val y = i / boardWidth
         val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
         when (piece) {
-            Piece.Black -> drawBlackMarker(cellWidth * 0.4f, center)
-            Piece.White -> drawWhiteMarker(cellWidth * 0.4f, center)
+            Piece.Black -> drawBlackPiece(cellWidth * 0.4f, center)
+            Piece.White -> drawWhitePiece(cellWidth * 0.4f, center)
             else -> Unit
         }
     }
-    markerList.forEach { marker ->
-        val (type, x, y) = marker
+    canDropList.forEach { i ->
+        val x = i % boardWidth
+        val y = i / boardWidth
+        val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
+        drawCanDropDot(cellWidth * 0.2f, center)
+    }
+}
+
+private fun DrawScope.drawMarks(
+    markList: List<Mark>,
+) {
+    val cellWidth = size.width / boardWidth
+    val cellHeight = size.height / boardWidth
+
+    markList.forEach { mark ->
+        val (type, x, y) = mark
         val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
         when (type) {
-            MarkerType.CanDrop -> drawCanDropMarker(cellWidth * 0.2f, center)
-            MarkerType.Circle -> drawCircleMarker(cellWidth * 0.35f, center)
-            MarkerType.Cross -> drawCrossMarker(cellWidth * 0.3f, center)
-            else -> Unit
+            MarkType.Circle -> drawCircleMark(cellWidth * 0.35f, center)
+            MarkType.Cross -> drawCrossMark(cellWidth * 0.3f, center)
         }
     }
 }
 
 
-private fun DrawScope.drawBlackMarker(
+private fun DrawScope.drawBlackPiece(
     radius: Float = this.size.minDimension,
     center: Offset = this.center,
 ) {
@@ -200,7 +227,7 @@ private fun DrawScope.drawBlackMarker(
     )
 }
 
-private fun DrawScope.drawWhiteMarker(
+private fun DrawScope.drawWhitePiece(
     radius: Float = this.size.minDimension,
     center: Offset = this.center,
 ) {
@@ -220,7 +247,7 @@ private fun DrawScope.drawWhiteMarker(
     )
 }
 
-private fun DrawScope.drawCanDropMarker(
+private fun DrawScope.drawCanDropDot(
     radius: Float = this.size.minDimension,
     center: Offset = this.center,
 ) {
@@ -231,7 +258,7 @@ private fun DrawScope.drawCanDropMarker(
     )
 }
 
-private fun DrawScope.drawCircleMarker(
+private fun DrawScope.drawCircleMark(
     radius: Float = this.size.minDimension,
     center: Offset = this.center,
 ) {
@@ -243,7 +270,7 @@ private fun DrawScope.drawCircleMarker(
     )
 }
 
-private fun DrawScope.drawCrossMarker(
+private fun DrawScope.drawCrossMark(
     radius: Float = this.size.minDimension,
     center: Offset = this.center,
 ) {
@@ -266,29 +293,43 @@ private fun DrawScope.drawCrossMarker(
 fun BoardPreview() {
     ReversiBoardTheme {
         Surface {
-            val markerList = listOf(
-                Marker(MarkerType.Cross, 4, 4),
-                Marker(MarkerType.CanDrop, 2, 3),
-                Marker(MarkerType.CanDrop, 3, 2),
-                Marker(MarkerType.CanDrop, 4, 5),
-                Marker(MarkerType.CanDrop, 5, 4),
-                Marker(MarkerType.Circle, 2, 1),
-                Marker(MarkerType.Cross, 1, 2),
+            val markList = listOf(
+                Mark(MarkType.Cross, 4, 4),
+                Mark(MarkType.Circle, 2, 1),
+                Mark(MarkType.Cross, 1, 2),
             )
-            val pieceList = MutableList(64) { Piece.Empty }
-                .apply {
-                    this[27] = Piece.White
-                    this[28] = Piece.Black
-                    this[35] = Piece.Black
-                    this[36] = Piece.White
-                }
+            val boardData = BoardData(
+                MutableList(64) { Piece.Empty }
+                    .apply {
+                        this[27] = Piece.White
+                        this[28] = Piece.Black
+                        this[35] = Piece.Black
+                        this[36] = Piece.White
+                        this[37] = Piece.Black
+                    }
+            )
             Board(
                 Modifier
                     .aspectRatio(1f)
                     .fillMaxWidth(),
-                pieceList,
-                markerList,
-                showAssist = true
+                boardData.elements,
+                boardData.blackCanDropList,
+                markList,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+private fun PieceSamplePreview() {
+    ReversiBoardTheme {
+        Surface {
+            PieceSample(
+                Modifier
+                    .aspectRatio(1.5f)
+                    .fillMaxWidth(),
+                Piece.Black
             )
         }
     }
