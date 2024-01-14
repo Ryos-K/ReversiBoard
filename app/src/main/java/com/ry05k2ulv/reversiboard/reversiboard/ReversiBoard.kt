@@ -41,6 +41,7 @@ class ReversiBoard(
 
     fun canUndo() = !undoDeque.isEmpty()
     fun canRedo() = !redoStack.isEmpty()
+
     fun undo() {
         redoStack.push(boardData)
         boardData = undoDeque.removeLast()
@@ -49,6 +50,20 @@ class ReversiBoard(
     fun redo() {
         undoDeque.addLast(boardData)
         boardData = redoStack.pop()
+    }
+
+    fun undoAll() {
+        redoStack.push(boardData)
+        boardData = undoDeque.removeFirst()
+        while (undoDeque.isNotEmpty())
+            redoStack.push(undoDeque.removeLast())
+    }
+
+    fun redoAll() {
+        undoDeque.addLast(boardData)
+        while (redoStack.isNotEmpty())
+            undoDeque.addLast(redoStack.pop())
+        boardData = undoDeque.removeLast()
     }
 
     fun drop(piece: Piece, x: Int, y: Int, overwrite: Boolean = false, reversible: Boolean = true) {

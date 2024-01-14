@@ -49,6 +49,30 @@ class HomeViewModel() : ViewModel() {
             )
         }
     }
+
+    fun undoAll() {
+        viewModelScope.launch {
+            if (!reversiBoard.canUndo()) return@launch
+            reversiBoard.undoAll()
+            _uiState.value = HomeUiState(
+                board = reversiBoard.boardData,
+                canUndo = reversiBoard.canUndo(),
+                canRedo = reversiBoard.canRedo(),
+            )
+        }
+    }
+
+    fun redoAll() {
+        viewModelScope.launch {
+            if (!reversiBoard.canRedo()) return@launch
+            reversiBoard.redoAll()
+            _uiState.value = HomeUiState(
+                board = reversiBoard.boardData,
+                canUndo = reversiBoard.canUndo(),
+                canRedo = reversiBoard.canRedo(),
+            )
+        }
+    }
 }
 
 data class HomeUiState(
