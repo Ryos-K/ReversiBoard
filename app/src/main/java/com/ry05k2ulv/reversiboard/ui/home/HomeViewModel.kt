@@ -6,23 +6,28 @@ import androidx.lifecycle.viewModelScope
 import com.ry05k2ulv.reversiboard.reversiboard.BoardData
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
 import com.ry05k2ulv.reversiboard.reversiboard.ReversiBoard
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel() : ViewModel() {
     private val reversiBoard = ReversiBoard()
 
-    private var _uiState = mutableStateOf(HomeUiState())
-    val uiState: HomeUiState
-        get() = _uiState.value
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState = _uiState.asStateFlow()
 
     fun dropPiece(piece: Piece, x: Int, y: Int, overwrite: Boolean, reversible: Boolean) {
         viewModelScope.launch {
             reversiBoard.drop(piece, x, y, overwrite, reversible)
-            _uiState.value = HomeUiState(
-                board = reversiBoard.boardData,
-                canUndo = reversiBoard.canUndo(),
-                canRedo = reversiBoard.canRedo(),
-            )
+            _uiState.update {
+                HomeUiState(
+                    board = reversiBoard.boardData,
+                    canUndo = reversiBoard.canUndo(),
+                    canRedo = reversiBoard.canRedo(),
+                )
+            }
         }
     }
 

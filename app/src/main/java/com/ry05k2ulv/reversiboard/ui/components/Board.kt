@@ -67,8 +67,8 @@ fun Board(
                 .pointerInput(Unit) {
                     detectTapGestures {
                         onTap(
-                            (it.x / (size.width / 8)).toInt(),
-                            (it.y / (size.height / 8)).toInt()
+                            (it.x / (size.width / boardWidth)).toInt(),
+                            (it.y / (size.height / boardWidth)).toInt()
                         )
                     }
                 }

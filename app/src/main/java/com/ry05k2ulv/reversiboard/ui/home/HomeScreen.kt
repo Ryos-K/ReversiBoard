@@ -1,5 +1,7 @@
 package com.ry05k2ulv.reversiboard.ui.home
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -16,16 +18,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +42,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
+import com.ry05k2ulv.reversiboard.reversiboard.boardWidth
+import com.ry05k2ulv.reversiboard.reversiboard.isEmpty
 import com.ry05k2ulv.reversiboard.ui.components.Board
 import com.ry05k2ulv.reversiboard.ui.components.Mark
 import com.ry05k2ulv.reversiboard.ui.components.MarkSample
@@ -47,13 +55,14 @@ import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 fun HomeScreen(
     viewModel: HomeViewModel = HomeViewModel(),
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
 
     var markMode by remember { mutableStateOf(false) }
     var currentPiece by remember { mutableStateOf(Piece.Black) }
     var currentMark by remember { mutableStateOf(MarkType.Circle) }
 
     var markList by remember { mutableStateOf(emptyList<Mark>()) }
+    var eraseMarkMode by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -103,19 +112,33 @@ fun HomeScreen(
                     .height(48.dp)
                     .horizontalScroll(rememberScrollState()),
             ) {
+                val contentModifier = Modifier
+                    .padding(16.dp, 0.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .fillMaxHeight()
+                    .aspectRatio(1.5f)
+                EraseButton(
+                    onClick = {
+                        markMode = true
+                        eraseMarkMode = true
+                    },
+                    contentModifier,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        if (eraseMarkMode) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    )
+                )
+
                 MarkType.values().forEach { mark ->
                     MarkSample(
-                        Modifier
-                            .padding(16.dp, 0.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .fillMaxHeight()
-                            .aspectRatio(1.5f)
+                        contentModifier
                             .clickable {
                                 currentMark = mark
                                 markMode = true
+                                eraseMarkMode = false
                             }
                             .border(
-                                if (markMode && currentMark == mark) 6.dp else 0.dp,
+                                if (!eraseMarkMode && markMode && currentMark == mark) 6.dp else 0.dp,
                                 MaterialTheme.colorScheme.primary,
                                 shape = RoundedCornerShape(8.dp)
                             ),
@@ -138,10 +161,33 @@ fun HomeScreen(
             },
             markList
         ) { x: Int, y: Int ->
-            if (markMode) {
-                markList = markList.toMutableList().apply { add(Mark(currentMark, x, y)) }
-            } else {
-                viewModel.dropPiece(currentPiece, x, y, false, true)
+            when {
+                markMode && eraseMarkMode -> {
+                    val lastIndex = markList.indexOfLast { it.x == x && it.y == y }
+                                        .takeIf { it != -1 } ?: return@Board
+                    markList = markList.toMutableList().apply { removeAt(lastIndex) }
+                }
+
+                markMode -> {
+                    if (markList.any { it.x == x && it.y == y && it.type == currentMark }) return@Board
+                    markList = markList.toMutableList().apply {
+                        add(Mark(currentMark, x, y))
+                    }
+                }
+
+                currentPiece == Piece.Black -> {
+                    if (x + y * boardWidth in uiState.board.blackCanDropList)
+                        viewModel.dropPiece(Piece.Black, x, y, false, true)
+                }
+
+                currentPiece == Piece.White -> {
+                    if (x + y * boardWidth in uiState.board.whiteCanDropList)
+                        viewModel.dropPiece(Piece.White, x, y, false, true)
+                }
+
+                currentPiece.isEmpty() -> {
+                    viewModel.dropPiece(Piece.Empty, x, y, true, false)
+                }
             }
         }
 
@@ -181,7 +227,26 @@ fun HomeScreen(
             )
         }
     }
+}
 
+@Composable
+private fun EraseButton(
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    colors: IconButtonColors = IconButtonDefaults.filledIconButtonColors(),
+    description: String = "Eraser Button",
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        colors = colors,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Clear,
+            contentDescription = description
+        )
+    }
 }
 
 @Composable
@@ -199,7 +264,8 @@ private fun UndoButton(
     ) {
         Icon(
             imageVector = Icons.Filled.Undo,
-            contentDescription = description
+            contentDescription = description,
+            modifier = Modifier.fillMaxHeight()
         )
     }
 }

@@ -70,24 +70,24 @@ class ReversiBoard(
         if (boardData.elements[x, y] != Empty && !overwrite || boardData.elements[x, y] == piece) return
         val elements = boardData.elements.toMutableList()
         elements[x, y] = piece
-        if (!reversible) return
-        /* nextBoard[x, y] == Empty && reversible */
-        repeat(8) { i ->
-            var j = 1
-            while (true) {
-                val nextX = x + dx[i] * j
-                val nextY = y + dy[i] * j
-                if (
-                    nextX !in 0 until boardWidth ||
-                    nextY !in 0 until boardWidth ||
-                    elements[nextX, nextY].isEmpty()
-                ) return@repeat
-                if (elements[nextX, nextY] == piece)
-                    break
-                j++
+        if (reversible) {
+            repeat(8) { i ->
+                var j = 1
+                while (true) {
+                    val nextX = x + dx[i] * j
+                    val nextY = y + dy[i] * j
+                    if (
+                        nextX !in 0 until boardWidth ||
+                        nextY !in 0 until boardWidth ||
+                        elements[nextX, nextY].isEmpty()
+                    ) return@repeat
+                    if (elements[nextX, nextY] == piece)
+                        break
+                    j++
+                }
+                while (--j > 0)
+                    elements[x + dx[i] * j, y + dy[i] * j] = piece
             }
-            while (--j > 0)
-                elements[x + dx[i] * j, y + dy[i] * j] = piece
         }
         updateBoard(BoardData(elements))
     }
