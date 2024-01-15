@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -107,28 +112,27 @@ fun HomePalette(
                     onClick = { homePaletteState.tabValue = it },
                     Modifier.padding(16.dp)
                 ) {
-                    Text(text = it.name, )
+                    Text(text = it.name)
                 }
             }
         }
+
+        val paletteModifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(8.dp)
         when (homePaletteState.tabValue) {
             TabValue.Piece -> PiecePalette(
-                Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(8.dp),
+                paletteModifier,
                 homePaletteState.piece
             ) { homePaletteState.piece = it }
 
-            TabValue.Mark -> MarkPalette(
-                Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(8.dp),
+            TabValue.Mark  -> MarkPalette(
+                paletteModifier,
                 homePaletteState.markType
             ) { homePaletteState.markType = it }
 
-            else -> Unit
+            else           -> Unit
         }
     }
 }
@@ -199,6 +203,26 @@ private fun MarkPalette(
                 mark
             )
         }
+    }
+}
+
+@Composable
+private fun EraseButton(
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    colors: IconButtonColors = IconButtonDefaults.filledIconButtonColors(),
+    description: String = "Eraser Button",
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        colors = colors,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Clear,
+            contentDescription = description
+        )
     }
 }
 
