@@ -66,30 +66,31 @@ class ReversiBoard(
         boardData = undoDeque.removeLast()
     }
 
-    fun drop(piece: Piece, x: Int, y: Int, overwrite: Boolean = false, reversible: Boolean = true) {
-        if (boardData.elements[x, y] != Empty && !overwrite || boardData.elements[x, y] == piece) return
-        val elements = boardData.elements.toMutableList()
-        elements[x, y] = piece
-        if (reversible) {
-            repeat(8) { i ->
-                var j = 1
-                while (true) {
-                    val nextX = x + dx[i] * j
-                    val nextY = y + dy[i] * j
-                    if (
-                        nextX !in 0 until boardWidth ||
-                        nextY !in 0 until boardWidth ||
-                        elements[nextX, nextY].isEmpty()
-                    ) return@repeat
-                    if (elements[nextX, nextY] == piece)
-                        break
-                    j++
-                }
-                while (--j > 0)
-                    elements[x + dx[i] * j, y + dy[i] * j] = piece
-            }
+    fun drop(
+        piece: Piece,
+        x: Int,
+        y: Int,
+        overwrite: Boolean = false,
+        reversible: Boolean = true,
+    ): Boolean {
+        val canDropList = when (piece) {
+            Black -> boardData.blackCanDropList
+            White -> boardData.whiteCanDropList
+            else  -> emptyList()
         }
-        updateBoard(BoardData(elements))
+        return if (
+            overwrite ||
+            x + y * boardWidth in canDropList
+        ) {
+            val elements = boardData.elements.toMutableList()
+            elements[x, y] = piece
+            if (reversible)
+                elements.reverse(piece, x, y)
+            updateBoard(BoardData(elements))
+            true
+        } else {
+            false
+        }
     }
 
     fun reset() {
@@ -103,6 +104,27 @@ class ReversiBoard(
                 }
             )
         )
+    }
+
+    private fun MutableList<Piece>.reverse(piece: Piece, x: Int, y: Int) {
+        this[x, y] = piece
+        repeat(8) { i ->
+            var j = 1
+            while (true) {
+                val nextX = x + dx[i] * j
+                val nextY = y + dy[i] * j
+                if (
+                    nextX !in 0 until boardWidth ||
+                    nextY !in 0 until boardWidth ||
+                    this[nextX, nextY].isEmpty()
+                ) return@repeat
+                if (this[nextX, nextY] == piece)
+                    break
+                j++
+            }
+            while (--j > 0)
+                this[x + dx[i] * j, y + dy[i] * j] = piece
+        }
     }
 }
 

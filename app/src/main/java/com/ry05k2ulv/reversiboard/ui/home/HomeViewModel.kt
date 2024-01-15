@@ -18,9 +18,15 @@ class HomeViewModel() : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun dropPiece(piece: Piece, x: Int, y: Int, overwrite: Boolean, reversible: Boolean) {
-        viewModelScope.launch {
-            reversiBoard.drop(piece, x, y, overwrite, reversible)
+    suspend fun dropPiece(
+        piece: Piece,
+        x: Int,
+        y: Int,
+        overwrite: Boolean,
+        reversible: Boolean,
+    ): Boolean {
+        val pieceIsDropped = reversiBoard.drop(piece, x, y, overwrite, reversible)
+        if (pieceIsDropped)
             _uiState.update {
                 HomeUiState(
                     board = reversiBoard.boardData,
@@ -28,7 +34,7 @@ class HomeViewModel() : ViewModel() {
                     canRedo = reversiBoard.canRedo(),
                 )
             }
-        }
+        return pieceIsDropped
     }
 
     fun undo() {

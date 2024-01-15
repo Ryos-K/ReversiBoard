@@ -13,6 +13,15 @@ data class BoardData(
     val blackCanDropList: List<Int> = canDropList(Piece.Black)
     val whiteCanDropList: List<Int> = canDropList(Piece.White)
 
+    fun canDrop(piece: Piece, x: Int, y: Int): Boolean {
+        val canDropList = when (piece) {
+            Piece.Black -> blackCanDropList
+            Piece.White -> whiteCanDropList
+            else        -> emptyList()
+        }
+        return x + y * boardWidth in canDropList
+    }
+
     private fun canDropList(piece: Piece): List<Int> {
         val canDropList = mutableListOf<Int>()
         repeat(boardArea) { i ->

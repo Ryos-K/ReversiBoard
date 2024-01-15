@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,11 +37,13 @@ import androidx.compose.ui.unit.dp
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
 import com.ry05k2ulv.reversiboard.reversiboard.boardWidth
 import com.ry05k2ulv.reversiboard.reversiboard.isEmpty
+import com.ry05k2ulv.reversiboard.reversiboard.opposite
 import com.ry05k2ulv.reversiboard.ui.components.Board
 import com.ry05k2ulv.reversiboard.ui.components.Mark
 import com.ry05k2ulv.reversiboard.ui.components.MarkType
 import com.ry05k2ulv.reversiboard.ui.home.Operation.*
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
+import kotlinx.coroutines.launch
 
 private sealed interface Operation {
     data class OpPiece(val piece: Piece, val overwrite: Boolean, val reversible: Boolean) :
@@ -55,6 +58,8 @@ private sealed interface Operation {
 fun HomeScreen(
     viewModel: HomeViewModel = HomeViewModel(),
 ) {
+    val scope = rememberCoroutineScope()
+
     val uiState by viewModel.uiState.collectAsState()
 
     val homePaletteState = rememberHomePaletteState()
@@ -64,14 +69,21 @@ fun HomeScreen(
     val operation: Operation by remember(
         homePaletteState.tabValue,
         homePaletteState.piece,
-        homePaletteState.markType
+        homePaletteState.markType,
+        homePaletteState.settings,
     ) {
         derivedStateOf {
             when (homePaletteState.tabValue) {
-                TabValue.Piece    -> OpPiece(homePaletteState.piece, false, true)
+                TabValue.Piece    -> OpPiece(
+                    homePaletteState.piece,
+                    homePaletteState.settings.overwrite,
+                    homePaletteState.settings.reversible
+                )
+
                 TabValue.Mark     ->
                     if (homePaletteState.markType == MarkType.Erase) OpErase
                     else OpMark(homePaletteState.markType)
+
                 TabValue.Settings -> OpNone
             }
         }
@@ -79,14 +91,6 @@ fun HomeScreen(
 
 
     Box(Modifier.fillMaxSize()) {
-
-        HomePalette(
-            Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth(),
-            homePaletteState
-        )
-
         Board(
             Modifier
                 .align(Alignment.Center)
@@ -112,16 +116,29 @@ fun HomeScreen(
                         add(Mark(operation.markType, x, y))
                     }
                 }
-                is OpPiece -> viewModel.dropPiece(
-                    operation.piece,
-                    x,
-                    y,
-                    operation.overwrite,
-                    operation.reversible
-                )
+                is OpPiece -> {
+                    scope.launch {
+                        val pieceIsDropped = viewModel.dropPiece(
+                            operation.piece,
+                            x,
+                            y,
+                            operation.overwrite,
+                            operation.reversible,
+                        )
+                        if (pieceIsDropped && homePaletteState.settings.autoChangeTurn)
+                            homePaletteState.piece = operation.piece.opposite()
+                    }
+                }
                 is OpNone  -> Unit
             }
         }
+
+        HomePalette(
+            Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth(),
+            homePaletteState
+        )
 
         Row(
             Modifier
