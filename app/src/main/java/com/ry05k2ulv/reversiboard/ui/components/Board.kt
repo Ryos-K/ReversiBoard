@@ -34,6 +34,7 @@ import com.ry05k2ulv.reversiboard.reversiboard.boardWidth
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 
 enum class MarkType {
+    Erase,
     Circle,
     Cross,
     Triangle,
@@ -120,6 +121,7 @@ fun MarkSample(
             MarkType.Triangle -> drawTriangleMark(cellLength * 0.35f, center)
             MarkType.Question -> drawQuestionMark(textMeasurer, cellLength * 0.4f, center)
             MarkType.Exclamation -> drawExclamationMark(textMeasurer, cellLength * 0.4f, center)
+            else -> Unit
         }
     }
 }
@@ -252,6 +254,7 @@ private fun DrawScope.drawMarks(
             MarkType.Triangle -> drawTriangleMark(cellWidth * 0.35f, center)
             MarkType.Question -> drawQuestionMark(textMeasurer, cellWidth * 0.4f, center)
             MarkType.Exclamation -> drawExclamationMark(textMeasurer, cellWidth * 0.4f, center)
+            else -> Unit
         }
     }
 }
