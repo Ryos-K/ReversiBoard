@@ -1,6 +1,5 @@
 package com.ry05k2ulv.reversiboard.ui.home
 
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,11 +62,9 @@ fun HomeScreen(
 
 	val dropMediaPlayer = remember {
 		MediaPlayer.create(context, R.raw.drop)
-				.apply {
-					setAudioAttributes(
-							AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).build()
-					)
-				}
+	}
+	val replaceMediaPlayer = remember {
+		MediaPlayer.create(context, R.raw.replace)
 	}
 
 	var markList by remember { mutableStateOf(emptyList<Mark>()) }
@@ -129,8 +126,7 @@ fun HomeScreen(
 						scope.launch {
 							val pieceIsDropped = viewModel.dropPiece(Piece(uiState.pieceType, x, y))
 							if (pieceIsDropped) {
-								if (dropMediaPlayer.isPlaying)
-									dropMediaPlayer.seekTo(0)
+								dropMediaPlayer.seekTo(0)
 								dropMediaPlayer.start()
 							}
 						}
@@ -149,28 +145,52 @@ fun HomeScreen(
 							.padding(8.dp, 0.dp)
 			) {
 				UndoAllButton(
-						onClick = viewModel::undoAll,
+						onClick = {
+							scope.launch {
+								viewModel.undoAll()
+								replaceMediaPlayer.seekTo(0)
+								replaceMediaPlayer.start()
+							}
+						},
 						enabled = uiState.canUndo,
 						modifier = Modifier
 								.weight(1f)
 								.padding(4.dp)
 				)
 				UndoButton(
-						onClick = viewModel::undo,
+						onClick = {
+							scope.launch {
+								viewModel.undo()
+								replaceMediaPlayer.seekTo(0)
+								replaceMediaPlayer.start()
+							}
+						},
 						enabled = uiState.canUndo,
 						modifier = Modifier
 								.weight(2f)
 								.padding(4.dp)
 				)
 				RedoButton(
-						onClick = viewModel::redo,
+						onClick = {
+							scope.launch {
+								viewModel.redo()
+								replaceMediaPlayer.seekTo(0)
+								replaceMediaPlayer.start()
+							}
+						},
 						enabled = uiState.canRedo,
 						modifier = Modifier
 								.weight(2f)
 								.padding(4.dp)
 				)
 				RedoAllButton(
-						onClick = viewModel::redoAll,
+						onClick = {
+							scope.launch {
+								viewModel.redoAll()
+								replaceMediaPlayer.seekTo(0)
+								replaceMediaPlayer.start()
+							}
+						},
 						enabled = uiState.canRedo,
 						modifier = Modifier
 								.weight(1f)
