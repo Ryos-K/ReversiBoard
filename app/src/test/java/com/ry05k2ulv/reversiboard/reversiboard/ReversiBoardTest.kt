@@ -1,37 +1,36 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
 import com.google.common.truth.Truth
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.Black
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.Empty
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.White
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Black
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Empty
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.White
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class ReversiBoardTest {
 
     private lateinit var subject: ReversiBoard
 
-    private fun randomBoard(width: Int = 8) = BoardData(
-        MutableList(width * width) {
-            when ((0..2).random()) {
-                0 -> Empty
-                1 -> Black
-                2 -> White
-                else -> throw Exception("randomList: Invalid value")
-            }
-        }
-    )
+	private fun randomBoard(width: Int = 8) = BoardSurface(
+			MutableList(width * width) {
+				when ((0..2).random()) {
+					0 -> Empty
+					1 -> Black
+					2 -> White
+					else -> throw Exception("randomList: Invalid value")
+				}
+			}
+	)
 
-    private fun initialBoard(width: Int = 8) = BoardData(
-        MutableList(width * width) { Empty }
-            .apply {
-                this[width / 2 - 1 + (width / 2 - 1) * width] = White
-                this[width / 2 - 1 + (width / 2) * width] = Black
-                this[width / 2 + (width / 2 - 1) * width] = Black
-                this[width / 2 + (width / 2) * width] = White
-            }
-    )
+	private fun initialBoard(width: Int = 8) = BoardSurface(
+			MutableList(width * width) { Empty }
+					.apply {
+						this[width / 2 - 1 + (width / 2 - 1) * width] = White
+						this[width / 2 - 1 + (width / 2) * width] = Black
+						this[width / 2 + (width / 2 - 1) * width] = Black
+						this[width / 2 + (width / 2) * width] = White
+					}
+	)
 
     @BeforeEach
     fun setup() {
@@ -41,16 +40,16 @@ class ReversiBoardTest {
     @Test
     fun updateBoard() {
         val initialBoard = initialBoard()
-        subject.updateBoard(initialBoard)
-        Truth.assertThat(subject.boardData).isEqualTo(initialBoard.copy())
+	    subject.updateBoard(initialBoard)
+	    Truth.assertThat(subject.boardSurface).isEqualTo(initialBoard.copy())
     }
 
     @Test
     fun updateBoard_randomly() {
         repeat(100) {
             val randomBoard = randomBoard()
-            subject.updateBoard(randomBoard)
-            Truth.assertThat(subject.boardData).isEqualTo(randomBoard.copy())
+	        subject.updateBoard(randomBoard)
+	        Truth.assertThat(subject.boardSurface).isEqualTo(randomBoard.copy())
         }
     }
 
@@ -96,11 +95,11 @@ class ReversiBoardTest {
         subject.updateBoard(board2)
         subject.updateBoard(board3)
 
-        Truth.assertThat(subject.boardData).isEqualTo(board3.copy())
-        subject.undo()
-        Truth.assertThat(subject.boardData).isEqualTo(board2.copy())
-        subject.undo()
-        Truth.assertThat(subject.boardData).isEqualTo(board1.copy())
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board3.copy())
+	    subject.undo()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board2.copy())
+	    subject.undo()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board1.copy())
     }
 
     @Test
@@ -114,11 +113,11 @@ class ReversiBoardTest {
         subject.undo()
         subject.undo()
 
-        Truth.assertThat(subject.boardData).isEqualTo(board1.copy())
-        subject.redo()
-        Truth.assertThat(subject.boardData).isEqualTo(board2.copy())
-        subject.redo()
-        Truth.assertThat(subject.boardData).isEqualTo(board3.copy())
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board1.copy())
+	    subject.redo()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board2.copy())
+	    subject.redo()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board3.copy())
     }
 
     @Test
@@ -127,8 +126,8 @@ class ReversiBoardTest {
         subject.updateBoard(initialBoard)
 
         // First drop
-        val firstBoard = BoardData(
-            """
+	    val firstBoard = BoardSurface(
+			    """
                 - - - - - - - -
                 - - - - - - - -
                 - - - - - - - -
@@ -137,14 +136,14 @@ class ReversiBoardTest {
                 - - - - - - - -
                 - - - - - - - -
             """.trimIndent().toBoard().first
-        )
+	    )
         subject.drop(White, 5, 3)
-        Truth.assertThat(firstBoard).isNotEqualTo(initialBoard)
-        Truth.assertThat(subject.boardData).isEqualTo(firstBoard.copy())
+	    Truth.assertThat(firstBoard).isNotEqualTo(initialBoard)
+	    Truth.assertThat(subject.boardSurface).isEqualTo(firstBoard.copy())
 
         // Second drop
-        val secondBoard = BoardData(
-            """
+	    val secondBoard = BoardSurface(
+			    """
                 - - - - - - - -
                 - - - - - - - -
                 - - - x - - - -
@@ -153,13 +152,13 @@ class ReversiBoardTest {
                 - - - - - - - -
                 - - - - - - - -
             """.trimIndent().toBoard().first
-        )
+	    )
         subject.drop(Black, 3, 2)
-        Truth.assertThat(secondBoard).isNotEqualTo(firstBoard)
-        Truth.assertThat(subject.boardData).isEqualTo(secondBoard.copy())
+	    Truth.assertThat(secondBoard).isNotEqualTo(firstBoard)
+	    Truth.assertThat(subject.boardSurface).isEqualTo(secondBoard.copy())
 
-        val thirdBoard = BoardData(
-            """
+	    val thirdBoard = BoardSurface(
+			    """
                 - - - - - - - -
                 - - - - - - - -
                 - - - x - - - -
@@ -168,13 +167,13 @@ class ReversiBoardTest {
                 - - - - - - - -
                 - - - - - - - -
             """.trimIndent().toBoard().first
-        )
+	    )
         subject.drop(White, 2, 3)
-        Truth.assertThat(thirdBoard).isNotEqualTo(secondBoard)
-        Truth.assertThat(subject.boardData).isEqualTo(thirdBoard.copy())
+	    Truth.assertThat(thirdBoard).isNotEqualTo(secondBoard)
+	    Truth.assertThat(subject.boardSurface).isEqualTo(thirdBoard.copy())
 
-        val fourthBoard = BoardData(
-            """
+	    val fourthBoard = BoardSurface(
+			    """
                 - - - - - - - -
                 - - - - - - - -
                 - - - x - - - -
@@ -183,18 +182,18 @@ class ReversiBoardTest {
                 - - - - - - - -
                 - - - - - - - -
             """.trimIndent().toBoard().first
-        )
+	    )
         subject.drop(Black, 5, 4)
-        Truth.assertThat(fourthBoard).isNotEqualTo(thirdBoard)
-        Truth.assertThat(subject.boardData).isEqualTo(fourthBoard.copy())
+	    Truth.assertThat(fourthBoard).isNotEqualTo(thirdBoard)
+	    Truth.assertThat(subject.boardSurface).isEqualTo(fourthBoard.copy())
     }
 
     @Test
     fun reset() {
         val initialBoard = initialBoard()
         subject.updateBoard(randomBoard())
-        subject.reset()
-        Truth.assertThat(subject.boardData).isEqualTo(initialBoard.copy())
+	    subject.reset()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(initialBoard.copy())
     }
 
 
@@ -204,9 +203,9 @@ class ReversiBoardTest {
         subject.updateBoard(board)
         subject.reset()
         Truth.assertThat(subject.canUndo()).isTrue()
-        subject.undo()
-        Truth.assertThat(subject.boardData).isEqualTo(board.copy())
-        subject.undo()
+	    subject.undo()
+	    Truth.assertThat(subject.boardSurface).isEqualTo(board.copy())
+	    subject.undo()
         Truth.assertThat(subject.canUndo()).isFalse()
     }
 }

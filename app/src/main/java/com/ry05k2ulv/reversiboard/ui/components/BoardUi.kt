@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -17,9 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -27,8 +24,8 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ry05k2ulv.reversiboard.reversiboard.BoardData
-import com.ry05k2ulv.reversiboard.reversiboard.Piece
+import com.ry05k2ulv.reversiboard.reversiboard.BoardSurface
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType
 import com.ry05k2ulv.reversiboard.reversiboard.boardArea
 import com.ry05k2ulv.reversiboard.reversiboard.boardWidth
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
@@ -49,42 +46,42 @@ data class Mark(
 )
 
 @Composable
-fun Board(
-    modifier: Modifier = Modifier,
-    pieceList: List<Piece> = List(64) { Piece.Empty },
-    canDropList: List<Int> = emptyList(),
-    markList: List<Mark> = emptyList(),
-    onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
+fun BoardUi(
+        modifier: Modifier = Modifier,
+        pieceTypeList: List<PieceType> = List(64) { PieceType.Empty },
+        canDropList: List<Int> = emptyList(),
+        markList: List<Mark> = emptyList(),
+        onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
     val textMeasurer = rememberTextMeasurer()
 
     Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
+            modifier = modifier,
+            contentAlignment = Alignment.Center
     ) {
         Canvas(
-            Modifier
-                .aspectRatio(1f)
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        onTap(
-                            (it.x / (size.width / boardWidth)).toInt(),
-                            (it.y / (size.height / boardWidth)).toInt()
-                        )
-                    }
-                }
+                Modifier
+                        .aspectRatio(1f)
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                onTap(
+                                        (it.x / (size.width / boardWidth)).toInt(),
+                                        (it.y / (size.height / boardWidth)).toInt()
+                                )
+                            }
+                        }
         ) {
             drawBoard()
-            drawPieces(pieceList, canDropList)
+            drawPieces(pieceTypeList, canDropList)
             drawMarks(markList, textMeasurer)
         }
     }
 }
 
 @Composable
-fun PieceSample(
-    modifier: Modifier = Modifier,
-    piece: Piece = Piece.Empty,
+fun PieceSampleUi(
+        modifier: Modifier = Modifier,
+        pieceType: PieceType = PieceType.Empty,
 ) {
     Canvas(modifier) {
         val length = minOf(size.width, size.height)
@@ -93,18 +90,18 @@ fun PieceSample(
         // Draw background
         drawSampleBoard()
         // Draw Piece
-        when (piece) {
-            Piece.Black -> drawBlackPiece(cellLength * 0.4f, center = center)
-            Piece.White -> drawWhitePiece(cellLength * 0.4f, center = center)
+        when (pieceType) {
+            PieceType.Black -> drawBlackPiece(cellLength * 0.4f, center = center)
+            PieceType.White -> drawWhitePiece(cellLength * 0.4f, center = center)
             else -> Unit
         }
     }
 }
 
 @Composable
-fun MarkSample(
-    modifier: Modifier = Modifier,
-    markType: MarkType = MarkType.Circle,
+fun MarkSampleUi(
+        modifier: Modifier = Modifier,
+        markType: MarkType = MarkType.Circle,
 ) {
     val textMeasurer = rememberTextMeasurer()
 
@@ -215,18 +212,18 @@ private fun DrawScope.drawBoard(
 }
 
 private fun DrawScope.drawPieces(
-    pieceList: List<Piece> = List(boardArea) { Piece.Empty },
-    canDropList: List<Int> = emptyList(),
+        pieceTypeList: List<PieceType> = List(boardArea) { PieceType.Empty },
+        canDropList: List<Int> = emptyList(),
 ) {
     val cellWidth = size.width / boardWidth
     val cellHeight = size.height / boardWidth
-    pieceList.forEachIndexed { i, piece ->
+    pieceTypeList.forEachIndexed { i, piece ->
         val x = i % boardWidth
         val y = i / boardWidth
         val center = Offset(cellWidth * x + cellWidth / 2, cellHeight * y + cellHeight / 2)
         when (piece) {
-            Piece.Black -> drawBlackPiece(cellWidth * 0.4f, center)
-            Piece.White -> drawWhitePiece(cellWidth * 0.4f, center)
+            PieceType.Black -> drawBlackPiece(cellWidth * 0.4f, center)
+            PieceType.White -> drawWhitePiece(cellWidth * 0.4f, center)
             else -> Unit
         }
     }
@@ -392,30 +389,30 @@ fun BoardPreview() {
     ReversiBoardTheme {
         Surface {
             val markList = listOf(
-                Mark(MarkType.Cross, 4, 4),
-                Mark(MarkType.Circle, 2, 1),
-                Mark(MarkType.Cross, 1, 2),
-                Mark(MarkType.Triangle, 6, 6),
-                Mark(MarkType.Question, 5, 6),
-                Mark(MarkType.Exclamation, 4, 6),
+                    Mark(MarkType.Cross, 4, 4),
+                    Mark(MarkType.Circle, 2, 1),
+                    Mark(MarkType.Cross, 1, 2),
+                    Mark(MarkType.Triangle, 6, 6),
+                    Mark(MarkType.Question, 5, 6),
+                    Mark(MarkType.Exclamation, 4, 6),
             )
-            val boardData = BoardData(
-                MutableList(64) { Piece.Empty }
-                    .apply {
-                        this[27] = Piece.White
-                        this[28] = Piece.Black
-                        this[35] = Piece.Black
-                        this[36] = Piece.White
-                        this[37] = Piece.Black
-                    }
+            val boardSurface = BoardSurface(
+                    MutableList(64) { PieceType.Empty }
+                            .apply {
+                                this[27] = PieceType.White
+                                this[28] = PieceType.Black
+                                this[35] = PieceType.Black
+                                this[36] = PieceType.White
+                                this[37] = PieceType.Black
+                            }
             )
-            Board(
-                Modifier
-                    .aspectRatio(1f)
-                    .fillMaxWidth(),
-                boardData.elements,
-                boardData.blackCanDropList,
-                markList,
+            BoardUi(
+                    Modifier
+                            .aspectRatio(1f)
+                            .fillMaxWidth(),
+                    boardSurface.elements,
+                    boardSurface.blackCanDropList,
+                    markList,
             )
         }
     }
@@ -426,11 +423,11 @@ fun BoardPreview() {
 private fun PieceSamplePreview() {
     ReversiBoardTheme {
         Surface {
-            PieceSample(
-                Modifier
-                    .aspectRatio(1.5f)
-                    .fillMaxWidth(),
-                Piece.Black
+            PieceSampleUi(
+                    Modifier
+                            .aspectRatio(1.5f)
+                            .fillMaxWidth(),
+                    PieceType.Black
             )
         }
     }
@@ -441,10 +438,10 @@ private fun PieceSamplePreview() {
 private fun MarkSamplePreview() {
     ReversiBoardTheme {
         Surface {
-            MarkSample(
-                Modifier
-                    .aspectRatio(1.5f)
-                    .fillMaxWidth(),
+            MarkSampleUi(
+                    Modifier
+                            .aspectRatio(1.5f)
+                            .fillMaxWidth(),
             )
         }
     }

@@ -1,6 +1,8 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.*
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Black
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Empty
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.White
 import java.util.ArrayDeque
 import java.util.Stack
 
@@ -10,30 +12,28 @@ const val boardArea = boardWidth * boardWidth
 internal val dx = arrayOf(0, 1, 1, 1, 0, -1, -1, -1)
 internal val dy = arrayOf(1, 1, 0, -1, -1, -1, 0, 1)
 
-operator fun List<Piece>.get(x: Int, y: Int): Piece {
+operator fun List<PieceType>.get(x: Int, y: Int): PieceType {
     return this[x + y * boardWidth]
 }
 
-operator fun MutableList<Piece>.set(x: Int, y: Int, cell: Piece) {
+operator fun MutableList<PieceType>.set(x: Int, y: Int, cell: PieceType) {
     this[x + y * boardWidth] = cell
 }
 
 class ReversiBoard(
-    val undoLimit: Int = 1024,
+        val undoLimit: Int = 1024,
 ) {
-
-
-    var boardData = BoardData()
+    var boardSurface = BoardSurface()
         private set
-    private val undoDeque = ArrayDeque<BoardData>()
-    private val redoStack = Stack<BoardData>()
+    private val undoDeque = ArrayDeque<BoardSurface>()
+    private val redoStack = Stack<BoardSurface>()
 
-    operator fun get(x: Int, y: Int) = boardData.elements[x, y]
+    operator fun get(x: Int, y: Int) = boardSurface.elements[x, y]
 
-    fun updateBoard(newBoard: BoardData) {
+    fun updateBoard(newBoard: BoardSurface) {
         require(newBoard.elements.size == boardArea) { "Invalid length" }
-        undoDeque.addLast(boardData)
-        boardData = newBoard
+        undoDeque.addLast(boardSurface)
+        boardSurface = newBoard
         redoStack.clear()
         if (undoDeque.size > undoLimit)
             undoDeque.removeFirst()
@@ -43,87 +43,74 @@ class ReversiBoard(
     fun canRedo() = !redoStack.isEmpty()
 
     fun undo() {
-        redoStack.push(boardData)
-        boardData = undoDeque.removeLast()
+        redoStack.push(boardSurface)
+        boardSurface = undoDeque.removeLast()
     }
 
     fun redo() {
-        undoDeque.addLast(boardData)
-        boardData = redoStack.pop()
+        undoDeque.addLast(boardSurface)
+        boardSurface = redoStack.pop()
     }
 
     fun undoAll() {
-        redoStack.push(boardData)
-        boardData = undoDeque.removeFirst()
+        redoStack.push(boardSurface)
+        boardSurface = undoDeque.removeFirst()
         while (undoDeque.isNotEmpty())
             redoStack.push(undoDeque.removeLast())
     }
 
     fun redoAll() {
-        undoDeque.addLast(boardData)
+        undoDeque.addLast(boardSurface)
         while (redoStack.isNotEmpty())
             undoDeque.addLast(redoStack.pop())
-        boardData = undoDeque.removeLast()
+        boardSurface = undoDeque.removeLast()
     }
 
-    fun drop(
-        piece: Piece,
-        x: Int,
-        y: Int,
-        overwrite: Boolean = false,
-        reversible: Boolean = true,
-    ): Boolean {
-        val canDropList = when (piece) {
-            Black -> boardData.blackCanDropList
-            White -> boardData.whiteCanDropList
-            else  -> emptyList()
-        }
-        return if (
-            overwrite ||
-            x + y * boardWidth in canDropList
-        ) {
-            val elements = boardData.elements.toMutableList()
-            elements[x, y] = piece
-            if (reversible)
-                elements.reverse(piece, x, y)
-            updateBoard(BoardData(elements))
+    fun drop(piece: Piece): Boolean {
+        return boardSurface.dropped(piece)?.let { next ->
+            updateBoard(next)
             true
-        } else {
-            false
-        }
+        } ?: false
+    }
+
+    fun replace(piece: Piece): Boolean {
+        return boardSurface.replaced(piece)?.let { next ->
+            updateBoard(next)
+            true
+        } ?: false
     }
 
     fun reset() {
         updateBoard(
-            BoardData(
-                MutableList(boardArea) { Empty }.apply {
-                    this[boardWidth / 2 - 1, boardWidth / 2 - 1] = White
-                    this[boardWidth / 2 - 1, boardWidth / 2] = Black
-                    this[boardWidth / 2, boardWidth / 2 - 1] = Black
-                    this[boardWidth / 2, boardWidth / 2] = White
-                }
-            )
+                BoardSurface(
+                        MutableList(boardArea) { Empty }.apply {
+                            this[boardWidth / 2 - 1, boardWidth / 2 - 1] = White
+                            this[boardWidth / 2 - 1, boardWidth / 2] = Black
+                            this[boardWidth / 2, boardWidth / 2 - 1] = Black
+                            this[boardWidth / 2, boardWidth / 2] = White
+                        }
+                )
         )
     }
 
-    private fun MutableList<Piece>.reverse(piece: Piece, x: Int, y: Int) {
-        this[x, y] = piece
+    private fun MutableList<PieceType>.reverseBy(piece: Piece) {
+        this[piece.x, piece.y] = piece.type
         repeat(8) { i ->
             var j = 1
             while (true) {
-                val nextX = x + dx[i] * j
-                val nextY = y + dy[i] * j
+                val nextX = piece.x + dx[i] * j
+                val nextY = piece.y + dy[i] * j
                 if (
-                    nextX !in 0 until boardWidth ||
-                    nextY !in 0 until boardWidth ||
-                    this[nextX, nextY].isEmpty()
+                        nextX !in 0 until boardWidth ||
+                        nextY !in 0 until boardWidth ||
+                        this[nextX, nextY].isEmpty()
                 ) return@repeat
-                if (this[nextX, nextY] == piece)
+                if (this[nextX, nextY] == piece.type)
                     break
                 j++
             }
             while (--j > 0)
-                this[x + dx[i] * j, y + dy[i] * j] = piece
+                this[piece.x + dx[i] * j, piece.y + dy[i] * j] = piece.type
         }
     }
 }

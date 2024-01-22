@@ -1,18 +1,24 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.Empty
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.Black
-import com.ry05k2ulv.reversiboard.reversiboard.Piece.White
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Black
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Empty
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.White
 
-enum class Piece {
+enum class PieceType {
     Empty,
     Black,
     White,
 }
 
-fun Piece.isEmpty(): Boolean = this == Empty
+data class Piece(
+        val type: PieceType,
+        val x: Int,
+        val y: Int,
+)
 
-fun Piece.opposite(): Piece = when (this) {
+fun PieceType.isEmpty(): Boolean = this == Empty
+
+fun PieceType.opposite(): PieceType = when (this) {
     Empty -> Empty
     Black -> White
     White -> Black

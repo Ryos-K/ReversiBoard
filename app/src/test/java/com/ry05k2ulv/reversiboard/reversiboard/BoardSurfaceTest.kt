@@ -3,7 +3,7 @@ package com.ry05k2ulv.reversiboard.reversiboard
 import com.google.common.truth.Truth
 import org.junit.jupiter.api.Test
 
-class BoardDataTest {
+class BoardSurfaceTest {
 
 
     /*
@@ -27,9 +27,9 @@ class BoardDataTest {
             - - - - - - - -
             - - - - - - - -
         """.trimIndent().toBoard()
-        val boardData = BoardData(elements)
-        Truth.assertThat(boardData.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
-        Truth.assertThat(boardData.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
+        val boardSurface = BoardSurface(elements)
+        Truth.assertThat(boardSurface.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
+        Truth.assertThat(boardSurface.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
     }
 
     @Test
@@ -44,9 +44,9 @@ class BoardDataTest {
             o x o x o x o x
             x o x o x o x o
         """.trimIndent().toBoard()
-        val boardData = BoardData(elements)
-        Truth.assertThat(boardData.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
-        Truth.assertThat(boardData.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
+        val boardSurface = BoardSurface(elements)
+        Truth.assertThat(boardSurface.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
+        Truth.assertThat(boardSurface.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
     }
 
     @Test
@@ -61,9 +61,9 @@ class BoardDataTest {
             - - - - - - - -
             - - - - - - - -
         """.trimIndent().toBoard()
-        val boardData = BoardData(elements)
-        Truth.assertThat(boardData.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
-        Truth.assertThat(boardData.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
+        val boardSurface = BoardSurface(elements)
+        Truth.assertThat(boardSurface.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
+        Truth.assertThat(boardSurface.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
     }
 
     @Test
@@ -78,9 +78,9 @@ class BoardDataTest {
             - - - x x x w -
             - - x w w w w -
         """.trimIndent().toBoard()
-        val boardData = BoardData(elements)
-        Truth.assertThat(boardData.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
-        Truth.assertThat(boardData.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
+        val boardSurface = BoardSurface(elements)
+        Truth.assertThat(boardSurface.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
+        Truth.assertThat(boardSurface.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
     }
 
     @Test
@@ -95,8 +95,8 @@ class BoardDataTest {
             b z x o o x o b
             - w x x o o z b
         """.trimIndent().toBoard()
-        val boardData = BoardData(elements)
-        Truth.assertThat(boardData.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
-        Truth.assertThat(boardData.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
+        val boardSurface = BoardSurface(elements)
+        Truth.assertThat(boardSurface.blackCanDropList).containsExactlyElementsIn(blackCanDrop)
+        Truth.assertThat(boardSurface.whiteCanDropList).containsExactlyElementsIn(whiteCanDrop)
     }
 }
