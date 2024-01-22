@@ -36,10 +36,11 @@ class HomeViewModel() : ViewModel() {
         }
     }
 
-    fun dropPiece(piece: Piece) {
-        val pieceIsDropped = reversiBoard.drop(piece)
-        if (pieceIsDropped)
-            syncUiState()
+    fun dropPiece(piece: Piece): Boolean {
+	    val pieceIsDropped = reversiBoard.drop(piece)
+	    if (pieceIsDropped)
+		    syncUiState()
+	    return pieceIsDropped
     }
 
     fun replacePiece(piece: Piece) {
