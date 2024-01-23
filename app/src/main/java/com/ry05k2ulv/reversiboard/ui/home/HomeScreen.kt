@@ -2,6 +2,7 @@ package com.ry05k2ulv.reversiboard.ui.home
 
 import android.media.MediaPlayer
 import android.util.Log
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -10,8 +11,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.ry05k2ulv.reversiboard.R
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
@@ -44,16 +49,10 @@ fun HomeScreen(
 
 	var lastMarkType by remember { mutableStateOf(MarkType.Erase) }
 
+	var offsetX by remember { mutableStateOf(0) }
+	var offsetY by remember { mutableStateOf(0) }
+
 	Box(Modifier.fillMaxSize()) {
-		MarkPalette(
-			modifier = Modifier
-				.align(Alignment.TopStart)
-				.padding(8.dp),
-			selected = lastMarkType,
-			onMarkChange = { lastMarkType = it },
-			expanded = markMode,
-			onExpandedChange = { markMode = it }
-		)
 
 		Column(
 			Modifier
@@ -111,9 +110,15 @@ fun HomeScreen(
 					.padding(16.dp)
 					.fillMaxWidth(),
 				selected = uiState.lastSelectedPieceType,
-				onPieceClick = viewModel::updatePieceType,
+				onPieceClick = {
+					viewModel.updatePieceType(it)
+					markMode = false
+				},
 				editMode = editMode,
-				onEditModeChange = { editMode = it }
+				onEditModeChange = {
+					editMode = it
+					markMode = false
+				}
 			)
 
 			Spacer(Modifier.height(16.dp))
@@ -153,7 +158,26 @@ fun HomeScreen(
 					}
 				}
 			)
+
 		}
+		MarkPalette(
+			modifier = Modifier
+				.align(Alignment.TopStart)
+				.padding(8.dp)
+				.offset { IntOffset(offsetX, offsetY) }
+				.pointerInput(Unit) {
+					detectDragGestures { change: PointerInputChange, dragAmount: Offset ->
+						change.consume()
+						offsetX += dragAmount.x.toInt()
+						offsetY += dragAmount.y.toInt()
+					}
+				},
+			selected = lastMarkType,
+			onMarkChange = { lastMarkType = it },
+			expanded = markMode,
+			onExpandedChange = { markMode = it },
+			onClearAllClick = { markList = emptyList() }
+		)
 	}
 }
 
