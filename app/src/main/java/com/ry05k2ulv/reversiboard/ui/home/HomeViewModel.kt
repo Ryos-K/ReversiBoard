@@ -1,13 +1,8 @@
 package com.ry05k2ulv.reversiboard.ui.home
 
 import androidx.lifecycle.ViewModel
-import com.ry05k2ulv.reversiboard.reversiboard.BoardSurface
-import com.ry05k2ulv.reversiboard.reversiboard.Piece
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType
-import com.ry05k2ulv.reversiboard.reversiboard.ReversiBoard
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import com.ry05k2ulv.reversiboard.reversiboard.*
+import kotlinx.coroutines.flow.*
 
 class HomeViewModel() : ViewModel() {
 	private val reversiBoard = ReversiBoard()
@@ -15,13 +10,13 @@ class HomeViewModel() : ViewModel() {
 	private val _uiState = MutableStateFlow(HomeUiState())
 	val uiState = _uiState.asStateFlow()
 
-	fun syncUiState() {
+	private fun syncUiState() {
 		_uiState.update {
 			HomeUiState(
-					board = reversiBoard.boardSurface,
-					pieceType = reversiBoard.boardSurface.expectPieceType,
-					canUndo = reversiBoard.canUndo(),
-					canRedo = reversiBoard.canRedo(),
+				board = reversiBoard.boardSurface,
+				pieceType = reversiBoard.boardSurface.expectPieceType,
+				canUndo = reversiBoard.canUndo(),
+				canRedo = reversiBoard.canRedo(),
 			)
 		}
 	}
@@ -29,7 +24,7 @@ class HomeViewModel() : ViewModel() {
 	fun updatePieceType(pieceType: PieceType) {
 		_uiState.update {
 			it.copy(
-					pieceType = pieceType,
+				pieceType = pieceType
 			)
 		}
 	}
@@ -41,10 +36,11 @@ class HomeViewModel() : ViewModel() {
 		return pieceIsDropped
 	}
 
-	fun replacePiece(piece: Piece) {
+	fun replacePiece(piece: Piece): Boolean {
 		val pieceIsReplaced = reversiBoard.replace(piece)
 		if (pieceIsReplaced)
 			syncUiState()
+		return pieceIsReplaced
 	}
 
 	fun undo(): Boolean {
@@ -81,8 +77,8 @@ class HomeViewModel() : ViewModel() {
 }
 
 data class HomeUiState(
-		val board: BoardSurface = BoardSurface(),
-		val pieceType: PieceType = PieceType.Black,
-		val canUndo: Boolean = false,
-		val canRedo: Boolean = false,
+	val board: BoardSurface = BoardSurface(),
+	val pieceType: PieceType = PieceType.Black,
+	val canUndo: Boolean = false,
+	val canRedo: Boolean = false,
 )
