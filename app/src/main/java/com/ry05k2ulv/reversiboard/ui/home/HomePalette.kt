@@ -5,8 +5,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,12 +17,7 @@ import com.ry05k2ulv.reversiboard.reversiboard.PieceType
 import com.ry05k2ulv.reversiboard.ui.components.*
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 
-sealed interface Operation {
-	data class OpPiece(val pieceType: PieceType) : Operation
-	data class OpMark(val markType: MarkType) : Operation
-	object OpErase : Operation
-	object OpNone : Operation
-}
+
 
 @Composable
 fun MarkPalette(
@@ -84,12 +78,18 @@ fun PiecePalette(
 	editMode: Boolean,
 	onEditModeChange: (Boolean) -> Unit,
 ) {
-	Card(modifier) {
-		SwitchRow(
+	Row(
+		modifier
+			.fillMaxWidth()
+			.clip(RoundedCornerShape(8.dp))
+			.background(MaterialTheme.colorScheme.surfaceVariant),
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		EditToggleButton(
 			checked = editMode,
 			onCheckedChange = onEditModeChange,
-			text = "Edit Mode",
-			modifier = Modifier.padding(16.dp, 0.dp)
+			modifier = Modifier
+				.padding(4.dp)
 		)
 
 		Row(
@@ -132,30 +132,6 @@ fun PiecePalette(
 }
 
 @Composable
-private fun SwitchRow(
-	checked: Boolean,
-	onCheckedChange: (Boolean) -> Unit,
-	text: String,
-	modifier: Modifier = Modifier,
-) {
-	Row(
-		modifier,
-		verticalAlignment = Alignment.CenterVertically
-	) {
-		Switch(
-			checked = checked,
-			onCheckedChange = onCheckedChange,
-			modifier = Modifier.padding(8.dp)
-		)
-		Spacer(Modifier.width(16.dp))
-		Text(
-			text,
-			style = MaterialTheme.typography.titleMedium
-		)
-	}
-}
-
-@Composable
 private fun PaletteToggleButton(
 	checked: Boolean,
 	onCheckedChange: (Boolean) -> Unit,
@@ -173,6 +149,28 @@ private fun PaletteToggleButton(
 		Icon(
 			imageVector = Icons.Default.Palette,
 			contentDescription = "Palette Toggle Button",
+			modifier = Modifier.size(32.dp)
+		)
+	}
+}
+
+@Composable
+private fun EditToggleButton(
+	checked: Boolean,
+	onCheckedChange: (Boolean) -> Unit,
+	modifier: Modifier = Modifier,
+) {
+	IconToggleButton(
+		checked = checked,
+		onCheckedChange = onCheckedChange,
+		modifier = modifier,
+	) {
+		Icon(
+			imageVector = Icons.Default.Edit,
+			contentDescription = "Palette Toggle Button",
+			modifier = Modifier
+				.padding(8.dp)
+				.size(32.dp)
 		)
 	}
 }
@@ -196,9 +194,18 @@ private fun EraseButton(
 
 @Composable
 @Preview
-fun HomePalettePreview() {
+fun PiecePalettePreview() {
 	ReversiBoardTheme {
 		Surface {
+			PiecePalette(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(16.dp),
+				selected = PieceType.Black,
+				onPieceClick = {},
+				editMode = true,
+				onEditModeChange = {},
+			)
 		}
 	}
 }

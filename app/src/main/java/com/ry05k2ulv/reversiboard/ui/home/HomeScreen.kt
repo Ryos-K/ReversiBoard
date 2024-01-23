@@ -66,7 +66,7 @@ fun HomeScreen(
 					.fillMaxWidth()
 					.padding(8.dp),
 				uiState.board.elements,
-				when (uiState.pieceType) {
+				when (uiState.lastSelectedPieceType) {
 					PieceType.Black -> if (!editMode) uiState.board.blackCanDropList else emptyList()
 					PieceType.White -> if (!editMode) uiState.board.whiteCanDropList else emptyList()
 					else            -> emptyList()
@@ -88,7 +88,7 @@ fun HomeScreen(
 					}
 
 					else                                       -> {
-						val piece = Piece(uiState.pieceType, x, y)
+						val piece = Piece(uiState.lastSelectedPieceType, x, y)
 						Log.d("HomeScreen", "dropPiece: $piece")
 						scope.launch {
 							val success = when (editMode) {
@@ -110,7 +110,7 @@ fun HomeScreen(
 				modifier = Modifier
 					.padding(16.dp)
 					.fillMaxWidth(),
-				selected = uiState.pieceType,
+				selected = uiState.lastSelectedPieceType,
 				onPieceClick = viewModel::updatePieceType,
 				editMode = editMode,
 				onEditModeChange = { editMode = it }
@@ -118,65 +118,87 @@ fun HomeScreen(
 
 			Spacer(Modifier.height(16.dp))
 
-			Row(
-				Modifier
+			UndoRedoBar(
+				modifier = Modifier
 					.fillMaxWidth()
-					.padding(8.dp, 0.dp)
-			) {
-				UndoAllButton(
-					modifier = Modifier
-						.weight(1f)
-						.padding(4.dp),
-					onClick = {
-						scope.launch {
-							viewModel.undoAll()
-							replaceMediaPlayer.seekTo(0)
-							replaceMediaPlayer.start()
-						}
-					},
-					enabled = uiState.canUndo
-				)
-				UndoButton(
-					modifier = Modifier
-						.weight(2f)
-						.padding(4.dp),
-					onClick = {
-						scope.launch {
-							viewModel.undo()
-							replaceMediaPlayer.seekTo(0)
-							replaceMediaPlayer.start()
-						}
-					},
-					enabled = uiState.canUndo
-				)
-				RedoButton(
-					modifier = Modifier
-						.weight(2f)
-						.padding(4.dp),
-					onClick = {
-						scope.launch {
-							viewModel.redo()
-							replaceMediaPlayer.seekTo(0)
-							replaceMediaPlayer.start()
-						}
-					},
-					enabled = uiState.canRedo
-				)
-				RedoAllButton(
-					modifier = Modifier
-						.weight(1f)
-						.padding(4.dp),
-					onClick = {
-						scope.launch {
-							viewModel.redoAll()
-							replaceMediaPlayer.seekTo(0)
-							replaceMediaPlayer.start()
-						}
-					},
-					enabled = uiState.canRedo
-				)
-			}
+					.padding(8.dp, 0.dp),
+				undoEnabled = uiState.canUndo,
+				redoEnabled = uiState.canRedo,
+				onUndo = {
+					scope.launch {
+						viewModel.undo()
+						replaceMediaPlayer.seekTo(0)
+						replaceMediaPlayer.start()
+					}
+				},
+				onRedo = {
+					scope.launch {
+						viewModel.redo()
+						replaceMediaPlayer.seekTo(0)
+						replaceMediaPlayer.start()
+					}
+				},
+				onUndoAll = {
+					scope.launch {
+						viewModel.undoAll()
+						replaceMediaPlayer.seekTo(0)
+						replaceMediaPlayer.start()
+					}
+				},
+				onRedoAll = {
+					scope.launch {
+						viewModel.redoAll()
+						replaceMediaPlayer.seekTo(0)
+						replaceMediaPlayer.start()
+					}
+				}
+			)
 		}
+	}
+}
+
+@Composable
+private fun UndoRedoBar(
+	modifier: Modifier,
+	undoEnabled: Boolean,
+	redoEnabled: Boolean,
+	onUndo: () -> Unit,
+	onRedo: () -> Unit,
+	onUndoAll: () -> Unit,
+	onRedoAll: () -> Unit,
+) {
+
+	Row(
+		modifier
+	) {
+		UndoAllButton(
+			modifier = Modifier
+				.weight(1f)
+				.padding(4.dp),
+			onClick = onUndoAll,
+			enabled = undoEnabled
+		)
+		UndoButton(
+			modifier = Modifier
+				.weight(2f)
+				.padding(4.dp),
+			onClick = onUndo,
+			enabled = undoEnabled
+		)
+		RedoButton(
+			modifier = Modifier
+				.weight(2f)
+				.padding(4.dp),
+			onClick = onRedo,
+			enabled = redoEnabled
+		)
+		RedoAllButton(
+			modifier = Modifier
+				.weight(1f)
+				.padding(4.dp),
+			onClick = onRedoAll,
+			enabled = redoEnabled
+		)
 	}
 }
 

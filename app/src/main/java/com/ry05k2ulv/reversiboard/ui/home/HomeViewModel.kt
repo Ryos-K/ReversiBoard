@@ -14,7 +14,7 @@ class HomeViewModel() : ViewModel() {
 		_uiState.update {
 			HomeUiState(
 				board = reversiBoard.boardSurface,
-				pieceType = reversiBoard.boardSurface.expectPieceType,
+				lastSelectedPieceType = reversiBoard.boardSurface.expectPieceType,
 				canUndo = reversiBoard.canUndo(),
 				canRedo = reversiBoard.canRedo(),
 			)
@@ -24,7 +24,7 @@ class HomeViewModel() : ViewModel() {
 	fun updatePieceType(pieceType: PieceType) {
 		_uiState.update {
 			it.copy(
-				pieceType = pieceType
+				lastSelectedPieceType = pieceType
 			)
 		}
 	}
@@ -78,7 +78,7 @@ class HomeViewModel() : ViewModel() {
 
 data class HomeUiState(
 	val board: BoardSurface = BoardSurface(),
-	val pieceType: PieceType = PieceType.Black,
+	val lastSelectedPieceType: PieceType = PieceType.Black,
 	val canUndo: Boolean = false,
 	val canRedo: Boolean = false,
 )
