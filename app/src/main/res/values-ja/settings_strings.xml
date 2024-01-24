@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">設定</string>
+    <string name="settings_use_dynamic_color_title">ダイナミックカラー</string>
+    <string name="settings_use_dynamic_color_yes">使用する</string>
+    <string name="settings_use_dynamic_color_no">使用しない</string>
+    <string name="settings_dark_theme_config_title">ダークモード</string>
+    <string name="settings_dark_theme_config_system">システム標準</string>
+    <string name="settings_dark_theme_config_light">ライト</string>
+    <string name="settings_dark_theme_config_dark">ダーク</string>
+    <string name="settings_confirm">決定</string>
+</resources>

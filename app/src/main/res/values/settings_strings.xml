@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_use_dynamic_color_title">Use Dynamic Color</string>
+    <string name="settings_use_dynamic_color_yes">Yes</string>
+    <string name="settings_use_dynamic_color_no">No</string>
+    <string name="settings_dark_theme_config_title">Mode</string>
+    <string name="settings_dark_theme_config_system">System Default</string>
+    <string name="settings_dark_theme_config_light">Light</string>
+    <string name="settings_dark_theme_config_dark">Dark</string>
+    <string name="settings_confirm">OK</string>
+</resources>
