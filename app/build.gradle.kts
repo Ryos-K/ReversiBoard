@@ -1,6 +1,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
+    id("com.google.protobuf").version("0.9.4")
 }
 
 android {
@@ -75,4 +78,41 @@ dependencies {
 
     // Add extended icons
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
+
+    // Add Hilt
+    val hiltVersion = "2.46"
+    implementation("com.google.dagger:hilt-android:$hiltVersion")
+    kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+    // Add Datastore
+    implementation("androidx.datastore:datastore:1.0.0")
+    implementation("com.google.protobuf:protobuf-javalite:3.19.1")
+}
+
+kapt {
+    correctErrorTypes = true
+}
+
+// refs: https://github.com/android/nowinandroid/blob/main/core/datastore/src/main/kotlin/com/google/samples/apps/nowinandroid/core/datastore/UserPreferencesSerializer.kt
+// refs: https://medium.com/androiddevelopers/all-about-proto-datastore-1b1af6cd2879
+protobuf {
+    // Configures the Protobuf compilation and the protoc executable
+    protoc {
+        // Downloads from the repositories
+        artifact = "com.google.protobuf:protoc:3.17.1"
+    }
+
+    // Generates the java Protobuf-lite code for the Protobufs in this project
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                // Configures the task output type
+                register("java") {
+                    // Java Lite has smaller code size and is recommended for Android
+                    option("lite")
+                }
+            }
+        }
+    }
 }
