@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-	private val repository: UserDataRepository
+	repository: UserDataRepository
 ) : ViewModel() {
 	val uiState: StateFlow<MainActivityUiState> = repository.userData
 		.map { userData ->

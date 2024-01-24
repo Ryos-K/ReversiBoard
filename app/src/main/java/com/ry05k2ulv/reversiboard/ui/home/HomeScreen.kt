@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ry05k2ulv.reversiboard.R
 import com.ry05k2ulv.reversiboard.reversiboard.Piece
 import com.ry05k2ulv.reversiboard.reversiboard.PieceType
@@ -28,7 +29,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-	viewModel: HomeViewModel = HomeViewModel(),
+	viewModel: HomeViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()

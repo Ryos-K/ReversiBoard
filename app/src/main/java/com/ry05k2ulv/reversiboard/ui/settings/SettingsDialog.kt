@@ -80,7 +80,7 @@ fun SettingsDialog(
 }
 
 @Composable
-private fun ColumnScope.SettingsPanel(
+private fun SettingsPanel(
 	settings: UserSettings,
 	supportDynamicTheme: Boolean,
 	onChangeDynamicColor: (Boolean) -> Unit,
@@ -133,7 +133,7 @@ private fun ChooserRow(
 	onClick: () -> Unit = {}
 ) {
 	Row(
-		modifier = androidx.compose.ui.Modifier
+		modifier = Modifier
 			.selectable(
 				selected = selected,
 				role = Role.RadioButton,

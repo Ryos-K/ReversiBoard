@@ -31,7 +31,7 @@ data class BoardSurface(
         } else null
     }
 
-    fun canDrop(piece: Piece): Boolean {
+    private fun canDrop(piece: Piece): Boolean {
         val canDropList = when (piece.type) {
             PieceType.Black -> blackCanDropList
             PieceType.White -> whiteCanDropList

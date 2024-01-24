@@ -2,9 +2,12 @@ package com.ry05k2ulv.reversiboard.ui.home
 
 import androidx.lifecycle.ViewModel
 import com.ry05k2ulv.reversiboard.reversiboard.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class HomeViewModel() : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor() : ViewModel() {
 	private val reversiBoard = ReversiBoard()
 
 	private val _uiState = MutableStateFlow(HomeUiState())

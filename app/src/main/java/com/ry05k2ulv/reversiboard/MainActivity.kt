@@ -5,19 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.ry05k2ulv.reversiboard.model.DarkThemeConfig
-import com.ry05k2ulv.reversiboard.ui.home.HomeScreen
-import com.ry05k2ulv.reversiboard.ui.home.HomeViewModel
+import com.ry05k2ulv.reversiboard.ui.RbApp
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    val viewModel: MainActivityViewModel by viewModels()
+    private val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +34,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel = HomeViewModel()
-                    HomeScreen(viewModel)
+                    when (uiState) {
+                        MainActivityUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator()}
+                        is MainActivityUiState.Success -> RbApp()
+                    }
                 }
             }
         }

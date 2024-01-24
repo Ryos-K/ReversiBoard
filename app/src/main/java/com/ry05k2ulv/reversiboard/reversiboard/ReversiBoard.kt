@@ -1,8 +1,6 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Black
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Empty
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.White
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.*
 import java.util.ArrayDeque
 import java.util.Stack
 
@@ -21,7 +19,7 @@ operator fun MutableList<PieceType>.set(x: Int, y: Int, cell: PieceType) {
 }
 
 class ReversiBoard(
-        val undoLimit: Int = 1024,
+    private val undoLimit: Int = 1024,
 ) {
     var boardSurface = BoardSurface()
         private set
@@ -93,25 +91,5 @@ class ReversiBoard(
         )
     }
 
-    private fun MutableList<PieceType>.reverseBy(piece: Piece) {
-        this[piece.x, piece.y] = piece.type
-        repeat(8) { i ->
-            var j = 1
-            while (true) {
-                val nextX = piece.x + dx[i] * j
-                val nextY = piece.y + dy[i] * j
-                if (
-                        nextX !in 0 until boardWidth ||
-                        nextY !in 0 until boardWidth ||
-                        this[nextX, nextY].isEmpty()
-                ) return@repeat
-                if (this[nextX, nextY] == piece.type)
-                    break
-                j++
-            }
-            while (--j > 0)
-                this[piece.x + dx[i] * j, piece.y + dy[i] * j] = piece.type
-        }
-    }
 }
 
