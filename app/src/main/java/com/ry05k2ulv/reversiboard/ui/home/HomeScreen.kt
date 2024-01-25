@@ -314,8 +314,7 @@ private fun RedoAllButton(
 private fun HomeScreenPreview() {
 	ReversiBoardTheme {
 		Surface {
-			val viewModel = HomeViewModel()
-			HomeScreen(viewModel)
+			HomeScreen()
 		}
 	}
 }

@@ -1,13 +1,33 @@
 package com.ry05k2ulv.reversiboard.ui.home
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.ry05k2ulv.reversiboard.reversiboard.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
+class HomeArgs private constructor(
+	val id: Int,
+) {
+	constructor(savedStateHandle: SavedStateHandle) : this(
+		id = checkNotNull(savedStateHandle.get<Int>(idArg))
+	)
+}
+
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+	savedStateHandle: SavedStateHandle
+) : ViewModel() {
+	private val id: Int
+
+	init {
+		val args = HomeArgs(savedStateHandle)
+		id = args.id
+		Log.d("HomeViewModel", "id: $id")
+	}
+
 	private val reversiBoard = ReversiBoard()
 
 	private val _uiState = MutableStateFlow(HomeUiState())
