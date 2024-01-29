@@ -20,8 +20,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ry05k2ulv.reversiboard.R
-import com.ry05k2ulv.reversiboard.reversiboard.Piece
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType
+import com.ry05k2ulv.reversiboard.reversiboard.*
 import com.ry05k2ulv.reversiboard.ui.components.*
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 import kotlinx.coroutines.launch
@@ -31,30 +30,57 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
 	viewModel: HomeViewModel = hiltViewModel(),
 ) {
+	val uiState = viewModel.uiState.collectAsState().value
+
+	when (uiState) {
+		is HomeUiState.Success -> SuccessScreen(
+			Modifier.fillMaxSize(),
+			uiState,
+			updateBoardSurface = viewModel::updateBoardSurface,
+			updatePieceType = viewModel::updatePieceType,
+			undo = viewModel::undo,
+			redo = viewModel::redo,
+			undoAll = viewModel::undoAll,
+			redoAll = viewModel::redoAll,
+		)
+
+		else                   -> LoadingScreen()
+	}
+}
+
+@Composable
+private fun SuccessScreen(
+	modifier: Modifier,
+	uiState: HomeUiState.Success,
+	updateBoardSurface: (BoardSurface) -> Unit,
+	updatePieceType: (PieceType) -> Unit,
+	undo: () -> Unit,
+	redo: () -> Unit,
+	undoAll: () -> Unit,
+	redoAll: () -> Unit,
+) {
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 
-	val uiState by viewModel.uiState.collectAsState()
-
-	val dropMediaPlayer = remember {
-		MediaPlayer.create(context, R.raw.drop)
-	}
-	val replaceMediaPlayer = remember {
-		MediaPlayer.create(context, R.raw.replace)
-	}
+	val dropMediaPlayer =
+		remember { MediaPlayer.create(context, R.raw.drop) }
+	val replaceMediaPlayer =
+		remember { MediaPlayer.create(context, R.raw.replace) }
 
 	var markList by remember { mutableStateOf(emptyList<Mark>()) }
 
 	var editMode by remember { mutableStateOf(false) }
 	var markMode by remember { mutableStateOf(false) }
 
+	var lastPieceType by remember(uiState.boardSurface) {
+		mutableStateOf(uiState.boardSurface.expectPieceType)
+	}
 	var lastMarkType by remember { mutableStateOf(MarkType.Erase) }
 
 	var offsetX by remember { mutableStateOf(0) }
 	var offsetY by remember { mutableStateOf(0) }
 
-	Box(Modifier.fillMaxSize()) {
-
+	Box(modifier) {
 		Column(
 			Modifier
 				.align(Alignment.BottomCenter)
@@ -65,13 +91,14 @@ fun HomeScreen(
 				Modifier
 					.fillMaxWidth()
 					.padding(8.dp),
-				uiState.board.elements,
-				when (uiState.lastSelectedPieceType) {
-					PieceType.Black -> if (!editMode) uiState.board.blackCanDropList else emptyList()
-					PieceType.White -> if (!editMode) uiState.board.whiteCanDropList else emptyList()
+				uiState.boardSurface.elements,
+				when (lastPieceType) {
+					PieceType.Black -> if (!editMode) uiState.boardSurface.blackCanDropList else emptyList()
+					PieceType.White -> if (!editMode) uiState.boardSurface.whiteCanDropList else emptyList()
 					else            -> emptyList()
 				},
-				markList
+				markList,
+				lastPieceType
 			) { x: Int, y: Int ->
 				when {
 					markMode && lastMarkType == MarkType.Erase -> {
@@ -88,16 +115,21 @@ fun HomeScreen(
 					}
 
 					else                                       -> {
-						val piece = Piece(uiState.lastSelectedPieceType, x, y)
-						Log.d("HomeScreen", "dropPiece: $piece")
+						val piece = Piece(lastPieceType, x, y)
+						Log.d("HomeScreen", "piece: $piece")
 						scope.launch {
-							val success = when (editMode) {
-								true -> viewModel.replacePiece(piece)
-								false -> viewModel.dropPiece(piece)
-							}
-							if (success) {
-								dropMediaPlayer.seekTo(0)
-								dropMediaPlayer.start()
+							if (editMode) {
+								uiState.boardSurface.replaced(piece)?.let {
+									updateBoardSurface(it)
+									replaceMediaPlayer.seekTo(0)
+									replaceMediaPlayer.start()
+								}
+							} else {
+								uiState.boardSurface.dropped(piece)?.let {
+									updateBoardSurface(it)
+									dropMediaPlayer.seekTo(0)
+									dropMediaPlayer.start()
+								}
 							}
 						}
 					}
@@ -110,9 +142,9 @@ fun HomeScreen(
 				modifier = Modifier
 					.padding(16.dp)
 					.fillMaxWidth(),
-				selected = uiState.lastSelectedPieceType,
+				selected = lastPieceType,
 				onPieceClick = {
-					viewModel.updatePieceType(it)
+					lastPieceType = it
 					markMode = false
 				},
 				editMode = editMode,
@@ -128,32 +160,32 @@ fun HomeScreen(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(8.dp, 0.dp),
-				undoEnabled = uiState.canUndo,
-				redoEnabled = uiState.canRedo,
+				undoEnabled = uiState.boardInfo.currentTurn > 1,
+				redoEnabled = uiState.boardInfo.currentTurn < uiState.boardInfo.maxTurn,
 				onUndo = {
 					scope.launch {
-						viewModel.undo()
+						undo()
 						replaceMediaPlayer.seekTo(0)
 						replaceMediaPlayer.start()
 					}
 				},
 				onRedo = {
 					scope.launch {
-						viewModel.redo()
+						redo()
 						replaceMediaPlayer.seekTo(0)
 						replaceMediaPlayer.start()
 					}
 				},
 				onUndoAll = {
 					scope.launch {
-						viewModel.undoAll()
+						undoAll()
 						replaceMediaPlayer.seekTo(0)
 						replaceMediaPlayer.start()
 					}
 				},
 				onRedoAll = {
 					scope.launch {
-						viewModel.redoAll()
+						redoAll()
 						replaceMediaPlayer.seekTo(0)
 						replaceMediaPlayer.start()
 					}

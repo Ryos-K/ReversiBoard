@@ -41,6 +41,7 @@ fun BoardUi(
 	pieceTypeList: List<PieceType> = List(64) { PieceType.Empty },
 	canDropList: List<Int> = emptyList(),
 	markList: List<Mark> = emptyList(),
+	pieceType: PieceType,
 	onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
 	val textMeasurer = rememberTextMeasurer()
@@ -55,7 +56,7 @@ fun BoardUi(
 		Canvas(
 			Modifier
 				.aspectRatio(1f)
-				.pointerInput(Unit) {
+				.pointerInput(pieceType) {
 					detectTapGestures {
 						onTap(
 							(it.x / (size.width / boardWidth)).toInt(),
@@ -381,40 +382,41 @@ private fun DrawScope.drawExclamationMark(
 	)
 }
 
-@Composable
-@Preview
-fun BoardPreview() {
-	ReversiBoardTheme {
-		Surface {
-			val markList = listOf(
-				Mark(MarkType.Cross, 4, 4),
-				Mark(MarkType.Circle, 2, 1),
-				Mark(MarkType.Cross, 1, 2),
-				Mark(MarkType.Triangle, 6, 6),
-				Mark(MarkType.Question, 5, 6),
-				Mark(MarkType.Exclamation, 4, 6),
-			)
-			val boardSurface = BoardSurface(
-				MutableList(64) { PieceType.Empty }
-					.apply {
-						this[27] = PieceType.White
-						this[28] = PieceType.Black
-						this[35] = PieceType.Black
-						this[36] = PieceType.White
-						this[37] = PieceType.Black
-					}
-			)
-			BoardUi(
-				Modifier
-					.aspectRatio(1f)
-					.fillMaxWidth(),
-				boardSurface.elements,
-				boardSurface.blackCanDropList,
-				markList,
-			)
-		}
-	}
-}
+//@Composable
+//@Preview
+//fun BoardPreview() {
+//	ReversiBoardTheme {
+//		Surface {
+//			val markList = listOf(
+//				Mark(MarkType.Cross, 4, 4),
+//				Mark(MarkType.Circle, 2, 1),
+//				Mark(MarkType.Cross, 1, 2),
+//				Mark(MarkType.Triangle, 6, 6),
+//				Mark(MarkType.Question, 5, 6),
+//				Mark(MarkType.Exclamation, 4, 6),
+//			)
+//			val boardSurface = BoardSurface(
+//				elements = MutableList(64) { PieceType.Empty }
+//					.apply {
+//						this[27] = PieceType.White
+//						this[28] = PieceType.Black
+//						this[35] = PieceType.Black
+//						this[36] = PieceType.White
+//						this[37] = PieceType.Black
+//					}
+//			)
+//			BoardUi(
+//				Modifier
+//					.aspectRatio(1f)
+//					.fillMaxWidth(),
+//				boardSurface.elements,
+//				boardSurface.blackCanDropList,
+//				markList,
+//
+//			)
+//		}
+//	}
+//}
 
 @Composable
 @Preview

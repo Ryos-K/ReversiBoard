@@ -16,7 +16,7 @@ fun NavGraphBuilder.homeScreen() {
 		arguments = listOf(
 			navArgument(idArg) {
 				type = NavType.IntType
-				defaultValue = 0
+				defaultValue = 1
 			}
 		)
 	) {

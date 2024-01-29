@@ -5,4 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface BoardInfoRepository {
 	fun getBoardInfoList(): Flow<List<BoardInfo>>
+
+	fun getBoardInfoById(id: Int): Flow<BoardInfo>
+
+	fun insertBoardInfo(boardInfo: BoardInfo)
+
+	fun updateBoardInfo(boardInfo: BoardInfo)
 }

@@ -19,8 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ry05k2ulv.reversiboard.R
 import com.ry05k2ulv.reversiboard.model.BoardInfo
 import com.ry05k2ulv.reversiboard.navigation.RbNavHost
-import com.ry05k2ulv.reversiboard.ui.home.homeNavigationRoute
-import com.ry05k2ulv.reversiboard.ui.home.navigateToHome
+import com.ry05k2ulv.reversiboard.ui.home.*
 import com.ry05k2ulv.reversiboard.ui.settings.SettingsDialog
 import kotlinx.coroutines.launch
 
@@ -55,7 +54,7 @@ fun RbApp(
 					is RbAppUiState.Success -> s.boardInfoList
 				},
 				onBoardInfoClick = {
-					navController.navigateToHome(it.id, navOptions)
+					navController.navigateToHome(it.id, NavOptions.Builder().setPopUpTo("$homeNavigationRoute?$idArg=${it.id}", true).build())
 				},
 				isLoading = uiState == RbAppUiState.Loading
 			)
