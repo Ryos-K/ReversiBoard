@@ -2,7 +2,6 @@ package com.ry05k2ulv.reversiboard.ui.home
 
 import android.media.MediaPlayer
 import android.util.Log
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -11,12 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ry05k2ulv.reversiboard.R
@@ -37,14 +32,13 @@ fun HomeScreen(
 			Modifier.fillMaxSize(),
 			uiState,
 			updateBoardSurface = viewModel::updateBoardSurface,
-			updatePieceType = viewModel::updatePieceType,
 			undo = viewModel::undo,
 			redo = viewModel::redo,
 			undoAll = viewModel::undoAll,
 			redoAll = viewModel::redoAll,
 		)
 
-		else                   -> LoadingScreen()
+		else                   -> LoadingScreen(Modifier.fillMaxSize())
 	}
 }
 
@@ -53,7 +47,6 @@ private fun SuccessScreen(
 	modifier: Modifier,
 	uiState: HomeUiState.Success,
 	updateBoardSurface: (BoardSurface) -> Unit,
-	updatePieceType: (PieceType) -> Unit,
 	undo: () -> Unit,
 	redo: () -> Unit,
 	undoAll: () -> Unit,
@@ -77,139 +70,123 @@ private fun SuccessScreen(
 	}
 	var lastMarkType by remember { mutableStateOf(MarkType.Erase) }
 
-	var offsetX by remember { mutableStateOf(0) }
-	var offsetY by remember { mutableStateOf(0) }
+	Column(
+		modifier,
+		verticalArrangement = Arrangement.SpaceBetween,
+		horizontalAlignment = Alignment.CenterHorizontally
+	) {
+		MarkPalette(
+			modifier = Modifier
+				.padding(8.dp),
+			selected = if (markMode) lastMarkType else null,
+			onMarkChange = {
+				lastMarkType = it
+				markMode = true
+			},
+			onClearAllClick = { markList = emptyList() }
+		)
 
-	Box(modifier) {
-		Column(
+		BoardUi(
 			Modifier
-				.align(Alignment.BottomCenter)
 				.fillMaxWidth()
-		) {
+				.padding(8.dp),
+			uiState.boardSurface.elements,
+			when (lastPieceType) {
+				PieceType.Black -> if (!editMode) uiState.boardSurface.blackCanDropList else emptyList()
+				PieceType.White -> if (!editMode) uiState.boardSurface.whiteCanDropList else emptyList()
+				else            -> emptyList()
+			},
+			markList,
+			lastPieceType
+		) { x: Int, y: Int ->
+			when {
+				markMode && lastMarkType == MarkType.Erase -> {
+					val lastIndex = markList.indexOfLast { it.x == x && it.y == y }
+						.takeIf { it != -1 } ?: return@BoardUi
+					markList = markList.toMutableList().apply { removeAt(lastIndex) }
+				}
 
-			BoardUi(
-				Modifier
-					.fillMaxWidth()
-					.padding(8.dp),
-				uiState.boardSurface.elements,
-				when (lastPieceType) {
-					PieceType.Black -> if (!editMode) uiState.boardSurface.blackCanDropList else emptyList()
-					PieceType.White -> if (!editMode) uiState.boardSurface.whiteCanDropList else emptyList()
-					else            -> emptyList()
-				},
-				markList,
-				lastPieceType
-			) { x: Int, y: Int ->
-				when {
-					markMode && lastMarkType == MarkType.Erase -> {
-						val lastIndex = markList.indexOfLast { it.x == x && it.y == y }
-							.takeIf { it != -1 } ?: return@BoardUi
-						markList = markList.toMutableList().apply { removeAt(lastIndex) }
+				markMode                                   -> {
+					val index =
+						markList.indexOfLast { it.x == x && it.y == y && it.type == lastMarkType }
+					markList = markList.toMutableList().apply {
+						if (index == -1) add(Mark(lastMarkType, x, y))
+						else removeAt(index)
 					}
+				}
 
-					markMode                                   -> {
-						if (markList.any { it.x == x && it.y == y && it.type == lastMarkType }) return@BoardUi
-						markList = markList.toMutableList().apply {
-							add(Mark(lastMarkType, x, y))
-						}
-					}
-
-					else                                       -> {
-						val piece = Piece(lastPieceType, x, y)
-						Log.d("HomeScreen", "piece: $piece")
-						scope.launch {
-							if (editMode) {
-								uiState.boardSurface.replaced(piece)?.let {
-									updateBoardSurface(it)
-									replaceMediaPlayer.seekTo(0)
-									replaceMediaPlayer.start()
-								}
-							} else {
-								uiState.boardSurface.dropped(piece)?.let {
-									updateBoardSurface(it)
-									dropMediaPlayer.seekTo(0)
-									dropMediaPlayer.start()
-								}
+				else                                       -> {
+					val piece = Piece(lastPieceType, x, y)
+					Log.d("HomeScreen", "piece: $piece")
+					scope.launch {
+						if (editMode) {
+							uiState.boardSurface.replaced(piece)?.let {
+								updateBoardSurface(it)
+								replaceMediaPlayer.seekTo(0)
+								replaceMediaPlayer.start()
+							}
+						} else {
+							uiState.boardSurface.dropped(piece)?.let {
+								updateBoardSurface(it)
+								dropMediaPlayer.seekTo(0)
+								dropMediaPlayer.start()
 							}
 						}
 					}
 				}
 			}
-
-			Spacer(Modifier.height(16.dp))
-
-			PiecePalette(
-				modifier = Modifier
-					.padding(16.dp)
-					.fillMaxWidth(),
-				selected = lastPieceType,
-				onPieceClick = {
-					lastPieceType = it
-					markMode = false
-				},
-				editMode = editMode,
-				onEditModeChange = {
-					editMode = it
-					markMode = false
-				}
-			)
-
-			Spacer(Modifier.height(16.dp))
-
-			UndoRedoBar(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(8.dp, 0.dp),
-				undoEnabled = uiState.boardInfo.currentTurn > 1,
-				redoEnabled = uiState.boardInfo.currentTurn < uiState.boardInfo.maxTurn,
-				onUndo = {
-					scope.launch {
-						undo()
-						replaceMediaPlayer.seekTo(0)
-						replaceMediaPlayer.start()
-					}
-				},
-				onRedo = {
-					scope.launch {
-						redo()
-						replaceMediaPlayer.seekTo(0)
-						replaceMediaPlayer.start()
-					}
-				},
-				onUndoAll = {
-					scope.launch {
-						undoAll()
-						replaceMediaPlayer.seekTo(0)
-						replaceMediaPlayer.start()
-					}
-				},
-				onRedoAll = {
-					scope.launch {
-						redoAll()
-						replaceMediaPlayer.seekTo(0)
-						replaceMediaPlayer.start()
-					}
-				}
-			)
-
 		}
-		MarkPalette(
+
+		PiecePalette(
 			modifier = Modifier
-				.align(Alignment.TopStart)
-				.padding(8.dp)
-				.offset { IntOffset(offsetX, offsetY) }
-				.pointerInput(Unit) {
-					detectDragGestures { change: PointerInputChange, dragAmount: Offset ->
-						change.consume()
-						offsetX += dragAmount.x.toInt()
-						offsetY += dragAmount.y.toInt()
-					}
-				},
-			selected = lastMarkType,
-			onMarkChange = { lastMarkType = it },
-			expanded = markMode,
-			onExpandedChange = { markMode = it },
-			onClearAllClick = { markList = emptyList() }
+				.padding(16.dp)
+				.fillMaxWidth(),
+			selected = lastPieceType,
+			onPieceClick = {
+				lastPieceType = it
+				markMode = false
+			},
+			editMode = editMode,
+			onEditModeChange = {
+				editMode = it
+				markMode = false
+			}
+		)
+
+		UndoRedoBar(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(8.dp, 0.dp),
+			undoEnabled = uiState.boardInfo.currentTurn > 1,
+			redoEnabled = uiState.boardInfo.currentTurn < uiState.boardInfo.maxTurn,
+			onUndo = {
+				scope.launch {
+					undo()
+					replaceMediaPlayer.seekTo(0)
+					replaceMediaPlayer.start()
+				}
+			},
+			onRedo = {
+				scope.launch {
+					redo()
+					replaceMediaPlayer.seekTo(0)
+					replaceMediaPlayer.start()
+				}
+			},
+			onUndoAll = {
+				scope.launch {
+					undoAll()
+					replaceMediaPlayer.seekTo(0)
+					replaceMediaPlayer.start()
+				}
+			},
+			onRedoAll = {
+				scope.launch {
+					redoAll()
+					replaceMediaPlayer.seekTo(0)
+					replaceMediaPlayer.start()
+				}
+			}
 		)
 	}
 }

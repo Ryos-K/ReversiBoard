@@ -23,7 +23,7 @@ class FakeBoardInfoRepository @Inject constructor() : BoardInfoRepository {
 	}
 
 	override fun getBoardInfoById(id: Int): Flow<BoardInfo> {
-		return boardInfoList.map { it[id] }
+		return boardInfoList.map { it.find { boardInfo -> boardInfo.id == id }!! }
 	}
 
 	override fun insertBoardInfo(boardInfo: BoardInfo) {

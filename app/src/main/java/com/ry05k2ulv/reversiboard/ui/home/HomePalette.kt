@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,16 +17,11 @@ import com.ry05k2ulv.reversiboard.reversiboard.PieceType
 import com.ry05k2ulv.reversiboard.ui.components.*
 import com.ry05k2ulv.reversiboard.ui.theme.ReversiBoardTheme
 
-@Stable
-class FloatingPaletteState()
-
 @Composable
 fun MarkPalette(
 	modifier: Modifier,
-	selected: MarkType,
+	selected: MarkType?,
 	onMarkChange: (MarkType) -> Unit,
-	expanded: Boolean,
-	onExpandedChange: (Boolean) -> Unit,
 	onClearAllClick: () -> Unit,
 ) {
 	Card(modifier.animateContentSize()) {
@@ -35,55 +29,50 @@ fun MarkPalette(
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.SpaceBetween
 		) {
-			PaletteToggleButton(
-				checked = expanded,
-				onCheckedChange = onExpandedChange,
-				modifier = Modifier
-					.padding(4.dp)
-					.size(40.dp)
+			Icon(
+				imageVector = Icons.Default.Palette,
+				contentDescription = "Palette Toggle Button",
+				modifier = Modifier.padding(8.dp).size(32.dp)
 			)
-			if (expanded) {
-				TextButton(onClick = onClearAllClick) {
-					Text("Clear All", style = MaterialTheme.typography.titleMedium)
-				}
+			TextButton(onClick = onClearAllClick) {
+				Text("Clear All", style = MaterialTheme.typography.titleMedium)
 			}
 		}
-		if (expanded) {
-			Row(
-				Modifier
-					.fillMaxWidth(0.8f)
-					.horizontalScroll(rememberScrollState()),
-			) {
-				val shape = RoundedCornerShape(8.dp)
-				val contentModifier = Modifier
-					.padding(8.dp)
-					.height(40.dp)
-					.clip(shape)
-					.fillMaxHeight()
-					.aspectRatio(1.3f)
-				EraseButton(
-					onClick = { onMarkChange(MarkType.Erase) },
-					contentModifier,
-					colors = IconButtonDefaults.filledIconButtonColors(
-						if (MarkType.Erase == selected) MaterialTheme.colorScheme.primary
-						else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-					),
-				)
+		Row(
+			Modifier
+				.fillMaxWidth(0.8f)
+				.horizontalScroll(rememberScrollState()),
+		) {
+			val shape = RoundedCornerShape(8.dp)
+			val contentModifier = Modifier
+				.padding(8.dp)
+				.height(40.dp)
+				.clip(shape)
+				.fillMaxHeight()
+				.aspectRatio(1.3f)
+			EraseButton(
+				onClick = { onMarkChange(MarkType.Erase) },
+				contentModifier,
+				colors = IconButtonDefaults.filledIconButtonColors(
+					if (MarkType.Erase == selected) MaterialTheme.colorScheme.primary
+					else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+				),
+			)
 
-				MarkType.values().drop(1).forEach { mark ->
-					MarkSampleUi(
-						contentModifier
-							.clickable { onMarkChange(mark) }
-							.border(
-								if (mark == selected) 4.dp else 0.dp,
-								MaterialTheme.colorScheme.primary,
-								shape
-							),
-						mark
-					)
-				}
+			MarkType.values().drop(1).forEach { mark ->
+				MarkSampleUi(
+					contentModifier
+						.clickable { onMarkChange(mark) }
+						.border(
+							if (mark == selected) 4.dp else 0.dp,
+							MaterialTheme.colorScheme.primary,
+							shape
+						),
+					mark
+				)
 			}
 		}
+
 	}
 }
 
@@ -238,8 +227,6 @@ fun MarkPalettePreview() {
 					.padding(16.dp),
 				selected = MarkType.Circle,
 				onMarkChange = {},
-				expanded = true,
-				onExpandedChange = {},
 				onClearAllClick = {},
 			)
 		}
