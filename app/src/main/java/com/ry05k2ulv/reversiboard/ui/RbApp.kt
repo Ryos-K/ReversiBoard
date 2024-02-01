@@ -2,11 +2,12 @@
 
 package com.ry05k2ulv.reversiboard.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -32,17 +33,16 @@ fun RbApp(
 	val uiState by viewModel.uiState.collectAsState()
 
 	val navController = rememberNavController()
-	val navOptions = remember {
-		NavOptions.Builder()
-			.setLaunchSingleTop(true)
-			.build()
-	}
 
 	var showSettingsDialog by remember { mutableStateOf(false) }
 	if (showSettingsDialog) {
 		SettingsDialog(
 			onDismiss = { showSettingsDialog = false }
 		)
+	}
+
+	var selectedBoardId by remember {
+		mutableIntStateOf(1)
 	}
 
 	val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -54,9 +54,16 @@ fun RbApp(
 					is RbAppUiState.Success -> s.boardInfoList
 				},
 				onBoardInfoClick = {
-					navController.navigateToHome(it.id, NavOptions.Builder().setPopUpTo("$homeNavigationRoute?$idArg=${it.id}", true).build())
+					selectedBoardId = it.id
+					navController.navigateToHome(
+						it.id,
+						NavOptions.Builder()
+							.setPopUpTo("$homeNavigationRoute?$idArg=${it.id}", true).build()
+					)
 				},
-				isLoading = uiState == RbAppUiState.Loading
+				isLoading = uiState == RbAppUiState.Loading,
+				selectedId = selectedBoardId,
+				modifier = Modifier.fillMaxWidth(0.65f),
 			)
 		},
 		drawerState = drawerState,
@@ -86,6 +93,7 @@ fun RbApp(
 @Composable
 private fun RbModalDrawerSheet(
 	boardInfoList: List<BoardInfo>,
+	selectedId: Int,
 	onBoardInfoClick: (BoardInfo) -> Unit,
 	modifier: Modifier = Modifier,
 	isLoading: Boolean = false,
@@ -93,20 +101,25 @@ private fun RbModalDrawerSheet(
 	ModalDrawerSheet(
 		modifier
 	) {
-		Text("Board List", style = MaterialTheme.typography.headlineMedium)
+		Spacer(Modifier.height(32.dp))
+		DrawerSheetSectionTitle(
+			Modifier
+				.padding(16.dp, 4.dp)
+				.height(48.dp),
+			title = "Board List"
+		)
 
 		if (isLoading) {
 			CircularProgressIndicator()
 		} else {
 			boardInfoList.forEach {
-				Row(
+				DrawerSheetItemRow(
 					Modifier
-						.padding(16.dp, 8.dp)
-						.height(48.dp)
-						.clickable { onBoardInfoClick(it) }
-				) {
-					Text(it.title, style = MaterialTheme.typography.labelLarge)
-				}
+						.padding(16.dp, 4.dp)
+						.height(32.dp),
+					boardInfo = it,
+					selected = it.id == selectedId,
+					onClick = { onBoardInfoClick(it) })
 			}
 		}
 	}
@@ -144,4 +157,50 @@ private fun RbTopAppBar(
 		},
 		colors = colors
 	)
+}
+
+@Composable
+private fun DrawerSheetSectionTitle(
+	modifier: Modifier,
+	title: String
+) {
+	Text(
+		title,
+		modifier = modifier,
+		style = MaterialTheme.typography.headlineMedium
+	)
+}
+
+@Composable
+private fun DrawerSheetItemRow(
+	modifier: Modifier,
+	boardInfo: BoardInfo,
+	selected: Boolean,
+	onClick: () -> Unit
+) {
+	val contentColor = animateColorAsState(
+		if (selected) MaterialTheme.colorScheme.primary
+		else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+		label = ""
+	)
+	val bulletWidth = animateDpAsState(
+		if (selected) 24.dp else 0.dp, label = ""
+	)
+	// text with bullet
+	Row(
+		modifier = modifier
+			.clickable { onClick() }
+	) {
+		Icon(
+			imageVector = Icons.Default.KeyboardArrowRight,
+			contentDescription = null,
+			modifier.width(bulletWidth.value),
+			tint = contentColor.value
+		)
+		Text(
+			text = boardInfo.title,
+			style = MaterialTheme.typography.titleMedium,
+			color = contentColor.value
+		)
+	}
 }
