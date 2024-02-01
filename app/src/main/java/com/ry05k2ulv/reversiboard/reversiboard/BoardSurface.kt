@@ -28,8 +28,12 @@ data class BoardSurface(
 	val expectPieceType: PieceType = PieceType.Black,
 	val lastPiece: Piece? = null,
 ) {
+	// Pre-calculation
 	val blackCanDropList: List<Int> = canDropList(PieceType.Black)
 	val whiteCanDropList: List<Int> = canDropList(PieceType.White)
+
+	val blackCount: Int = elements.count { it == PieceType.Black }
+	val whiteCount: Int = elements.count { it == PieceType.White }
 
 	fun dropped(piece: Piece): BoardSurface? {
 		return if (canDrop(piece)) {

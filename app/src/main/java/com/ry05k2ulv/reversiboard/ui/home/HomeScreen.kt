@@ -136,9 +136,17 @@ private fun SuccessScreen(
 			}
 		}
 
+		Text(
+			text = "Black : White = %02d : %02d".format(
+				uiState.boardSurface.blackCount,
+				uiState.boardSurface.whiteCount
+			),
+			style = MaterialTheme.typography.labelLarge
+		)
+
 		PiecePalette(
 			modifier = Modifier
-				.padding(16.dp)
+				.padding(8.dp)
 				.fillMaxWidth(),
 			selected = lastPieceType,
 			onPieceClick = {
