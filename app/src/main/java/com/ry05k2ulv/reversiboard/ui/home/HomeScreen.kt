@@ -96,8 +96,7 @@ private fun SuccessScreen(
 				PieceType.White -> if (!editMode) uiState.boardSurface.whiteCanDropList else emptyList()
 				else            -> emptyList()
 			},
-			markList,
-			lastPieceType
+			markList
 		) { x: Int, y: Int ->
 			when {
 				markMode && lastMarkType == MarkType.Erase -> {

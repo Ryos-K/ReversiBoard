@@ -1,13 +1,12 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Black
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.Empty
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType.White
+import com.ry05k2ulv.reversiboard.reversiboard.PieceType.*
 
 enum class PieceType {
     Empty,
     Black,
     White,
+    Block,
 }
 
 data class Piece(
@@ -22,4 +21,5 @@ fun PieceType.opposite(): PieceType = when (this) {
     Empty -> Empty
     Black -> White
     White -> Black
+    Block -> Block
 }

@@ -38,10 +38,9 @@ data class Mark(
 @Composable
 fun BoardUi(
 	modifier: Modifier = Modifier,
-	pieceTypeList: List<PieceType> = List(64) { PieceType.Empty },
+	elements: List<PieceType> = List(64) { PieceType.Empty },
 	canDropList: List<Int> = emptyList(),
 	markList: List<Mark> = emptyList(),
-	pieceType: PieceType,
 	onTap: (x: Int, y: Int) -> Unit = { _, _ -> },
 ) {
 	val textMeasurer = rememberTextMeasurer()
@@ -56,7 +55,7 @@ fun BoardUi(
 		Canvas(
 			Modifier
 				.aspectRatio(1f)
-				.pointerInput(pieceType) {
+				.pointerInput(elements) {
 					detectTapGestures {
 						onTap(
 							(it.x / (size.width / boardWidth)).toInt(),
@@ -68,7 +67,7 @@ fun BoardUi(
 			drawBoard(
 				background1, background2
 			)
-			drawPieces(pieceTypeList, canDropList)
+			drawPieces(elements, canDropList)
 			drawMarks(markList, textMeasurer)
 		}
 	}
@@ -91,6 +90,7 @@ fun PieceSampleUi(
 		when (pieceType) {
 			PieceType.Black -> drawBlackPiece(cellLength * 0.4f, center = center)
 			PieceType.White -> drawWhitePiece(cellLength * 0.4f, center = center)
+			PieceType.Block -> drawBlockPiece(cellLength * 0.45f, center = center)
 			else            -> Unit
 		}
 	}
@@ -223,6 +223,7 @@ private fun DrawScope.drawPieces(
 		when (piece) {
 			PieceType.Black -> drawBlackPiece(cellWidth * 0.4f, center)
 			PieceType.White -> drawWhitePiece(cellWidth * 0.4f, center)
+			PieceType.Block -> drawBlockPiece(cellWidth * 0.45f, center)
 			else            -> Unit
 		}
 	}
@@ -293,6 +294,44 @@ private fun DrawScope.drawWhitePiece(
 		Color.White,
 		radius = radius,
 		center = center,
+	)
+}
+
+private fun DrawScope.drawBlockPiece(
+	radius: Float = this.size.minDimension,
+	center: Offset = this.center,
+) {
+	val centerColor = Color(0xFFC0C0C0)
+	val sunnySideColor = Color(0xFFE0E0E0)
+	val shadeSideColor = Color(0xFFA0A0A0)
+
+	val topLeftVertex = center + Offset(-radius, -radius)
+	val topRightVertex = center + Offset(radius, -radius)
+	val bottomLeftVertex = center + Offset(-radius, radius)
+	val bottomRightVertex = center + Offset(radius, radius)
+
+	drawPath(
+		Path().apply {
+			moveTo(topLeftVertex.x, topLeftVertex.y)
+			lineTo(topRightVertex.x, topRightVertex.y)
+			lineTo(bottomLeftVertex.x, bottomLeftVertex.y)
+			close()
+		},
+		color = sunnySideColor,
+	)
+	drawPath(
+		Path().apply {
+			moveTo(topRightVertex.x, topRightVertex.y)
+			lineTo(bottomRightVertex.x, bottomRightVertex.y)
+			lineTo(bottomLeftVertex.x, bottomLeftVertex.y)
+			close()
+		},
+		color = shadeSideColor,
+	)
+	drawRect(
+		centerColor,
+		Offset(center.x - radius * 0.8f, center.y - radius * 0.8f),
+		Size(radius * 1.6f, radius * 1.6f),
 	)
 }
 

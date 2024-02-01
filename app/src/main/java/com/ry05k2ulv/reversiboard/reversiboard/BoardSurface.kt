@@ -1,5 +1,19 @@
 package com.ry05k2ulv.reversiboard.reversiboard
 
+const val boardWidth = 8
+const val boardArea = boardWidth * boardWidth
+
+internal val dx = arrayOf(0, 1, 1, 1, 0, -1, -1, -1)
+internal val dy = arrayOf(1, 1, 0, -1, -1, -1, 0, 1)
+
+operator fun List<PieceType>.get(x: Int, y: Int): PieceType {
+	return this[x + y * boardWidth]
+}
+
+operator fun MutableList<PieceType>.set(x: Int, y: Int, cell: PieceType) {
+	this[x + y * boardWidth] = cell
+}
+
 private fun elementsDefault() = MutableList(boardArea) { PieceType.Empty }.apply {
 	this[boardWidth / 2 - 1, boardWidth / 2 - 1] = PieceType.White
 	this[boardWidth / 2 - 1, boardWidth / 2] = PieceType.Black
@@ -56,7 +70,8 @@ data class BoardSurface(
 					if (
 						nextX !in 0 until boardWidth ||
 						nextY !in 0 until boardWidth ||
-						elements[nextX, nextY].isEmpty()
+						elements[nextX, nextY] == PieceType.Empty ||
+						elements[nextX, nextY] == PieceType.Block
 					) return@canDrop
 					if (elements[nextX, nextY] == pieceType)
 						break

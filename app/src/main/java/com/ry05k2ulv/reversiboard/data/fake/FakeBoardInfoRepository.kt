@@ -2,7 +2,6 @@ package com.ry05k2ulv.reversiboard.data.fake
 
 import com.ry05k2ulv.reversiboard.data.BoardInfoRepository
 import com.ry05k2ulv.reversiboard.model.BoardInfo
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
@@ -14,7 +13,7 @@ class FakeBoardInfoRepository @Inject constructor() : BoardInfoRepository {
 		)
 
 		private fun boardInfo(id: Int, title: String) = BoardInfo(
-			id, title, 1, 1, emptyList(), PieceType.Black, false
+			id, title, 1, 1, emptyList(), false
 		)
 	}
 

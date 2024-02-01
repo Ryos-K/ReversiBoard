@@ -6,7 +6,6 @@ import com.ry05k2ulv.reversiboard.data.BoardInfoRepository
 import com.ry05k2ulv.reversiboard.data.BoardSurfaceRepository
 import com.ry05k2ulv.reversiboard.model.BoardInfo
 import com.ry05k2ulv.reversiboard.reversiboard.BoardSurface
-import com.ry05k2ulv.reversiboard.reversiboard.PieceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -60,17 +59,6 @@ class HomeViewModel @Inject constructor(
 					currentTurn = boardSurface.turn,
 				)
 			)
-		}
-	}
-
-	fun updatePieceType(pieceType: PieceType) {
-		val value = uiState.value
-		if (value !is HomeUiState.Success) return
-		val next = value.boardInfo.copy(
-			lastSelectedPieceType = pieceType
-		)
-		viewModelScope.launch {
-			boardInfoRepository.updateBoardInfo(next)
 		}
 	}
 

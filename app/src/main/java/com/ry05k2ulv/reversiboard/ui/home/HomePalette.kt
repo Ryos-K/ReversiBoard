@@ -32,7 +32,9 @@ fun MarkPalette(
 			Icon(
 				imageVector = Icons.Default.Palette,
 				contentDescription = "Palette Toggle Button",
-				modifier = Modifier.padding(8.dp).size(32.dp)
+				modifier = Modifier
+					.padding(8.dp)
+					.size(32.dp)
 			)
 			TextButton(onClick = onClearAllClick) {
 				Text("Clear All", style = MaterialTheme.typography.titleMedium)
@@ -100,7 +102,8 @@ fun PiecePalette(
 
 		Row(
 			Modifier
-				.fillMaxWidth(),
+				.fillMaxWidth()
+				.horizontalScroll(rememberScrollState()),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			val shape = RoundedCornerShape(8.dp)
