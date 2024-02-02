@@ -8,7 +8,7 @@ interface BoardInfoRepository {
 
 	fun getBoardInfoById(id: Int): Flow<BoardInfo>
 
-	fun insertBoardInfo(boardInfo: BoardInfo)
+	fun insertBoardInfo(boardInfo: BoardInfo): Int
 
 	fun updateBoardInfo(boardInfo: BoardInfo)
 }

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -30,7 +31,7 @@ fun RbApp(
 ) {
 	val scope = rememberCoroutineScope()
 
-	val uiState by viewModel.uiState.collectAsState()
+	val uiState = viewModel.uiState.collectAsState().value
 
 	val navController = rememberNavController()
 
@@ -49,9 +50,9 @@ fun RbApp(
 	ModalNavigationDrawer(
 		drawerContent = {
 			RbModalDrawerSheet(
-				boardInfoList = when (val s = uiState) {
+				boardInfoList = when (uiState) {
 					RbAppUiState.Loading -> emptyList()
-					is RbAppUiState.Success -> s.boardInfoList
+					is RbAppUiState.Success -> uiState.boardInfoList
 				},
 				onBoardInfoClick = {
 					selectedBoardId = it.id
@@ -61,12 +62,17 @@ fun RbApp(
 							.setPopUpTo("$homeNavigationRoute?$idArg=${it.id}", true).build()
 					)
 				},
-				isLoading = uiState == RbAppUiState.Loading,
 				selectedId = selectedBoardId,
-				modifier = Modifier.fillMaxWidth(0.65f),
+				onAddBoardClick = {
+					viewModel.addBoardInfo("Added")
+				},
+				modifier = Modifier
+					.fillMaxWidth(0.65f)
+					.fillMaxHeight(),
 			)
 		},
 		drawerState = drawerState,
+		gesturesEnabled = drawerState.isOpen
 	) {
 		Scaffold(
 			topBar = {
@@ -95,8 +101,8 @@ private fun RbModalDrawerSheet(
 	boardInfoList: List<BoardInfo>,
 	selectedId: Int,
 	onBoardInfoClick: (BoardInfo) -> Unit,
+	onAddBoardClick: () -> Unit,
 	modifier: Modifier = Modifier,
-	isLoading: Boolean = false,
 ) {
 	ModalDrawerSheet(
 		modifier
@@ -105,23 +111,31 @@ private fun RbModalDrawerSheet(
 		DrawerSheetSectionTitle(
 			Modifier
 				.padding(16.dp, 4.dp)
-				.height(48.dp),
+				.height(48.dp)
+				.fillMaxWidth(),
 			title = "Board List"
 		)
 
-		if (isLoading) {
-			CircularProgressIndicator()
-		} else {
-			boardInfoList.forEach {
-				DrawerSheetItemRow(
-					Modifier
-						.padding(16.dp, 4.dp)
-						.height(32.dp),
-					boardInfo = it,
-					selected = it.id == selectedId,
-					onClick = { onBoardInfoClick(it) })
-			}
+		boardInfoList.forEach {
+			DrawerSheetItemRow(
+				Modifier
+					.padding(16.dp, 4.dp)
+					.height(32.dp)
+					.fillMaxWidth(),
+				boardInfo = it,
+				selected = it.id == selectedId,
+				onClick = { onBoardInfoClick(it) })
 		}
+
+		Divider(Modifier.padding(16.dp))
+
+		DrawerSheetAddItemRow(
+			Modifier
+				.padding(16.dp, 4.dp)
+				.height(32.dp)
+				.fillMaxWidth(),
+			onAddBoardClick
+		)
 	}
 }
 
@@ -164,11 +178,13 @@ private fun DrawerSheetSectionTitle(
 	modifier: Modifier,
 	title: String
 ) {
-	Text(
-		title,
-		modifier = modifier,
-		style = MaterialTheme.typography.headlineMedium
-	)
+	Column(modifier) {
+		Text(
+			title,
+			style = MaterialTheme.typography.headlineMedium
+		)
+		Divider()
+	}
 }
 
 @Composable
@@ -189,18 +205,43 @@ private fun DrawerSheetItemRow(
 	// text with bullet
 	Row(
 		modifier = modifier
-			.clickable { onClick() }
+			.clickable { onClick() },
+		verticalAlignment = Alignment.CenterVertically
 	) {
 		Icon(
 			imageVector = Icons.Default.KeyboardArrowRight,
 			contentDescription = null,
-			modifier.width(bulletWidth.value),
+			modifier = Modifier.width(bulletWidth.value),
 			tint = contentColor.value
 		)
 		Text(
 			text = boardInfo.title,
-			style = MaterialTheme.typography.titleMedium,
+			style = MaterialTheme.typography.titleLarge,
 			color = contentColor.value
+		)
+	}
+}
+
+@Composable
+private fun DrawerSheetAddItemRow(
+	modifier: Modifier,
+	onClick: () -> Unit
+) {
+	Row(
+		modifier = modifier
+			.clickable { onClick() },
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Icon(
+			imageVector = Icons.Default.Add,
+			contentDescription = null,
+
+			tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+		)
+		Text(
+			text = "Add Board",
+			style = MaterialTheme.typography.titleLarge,
+			color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 		)
 	}
 }

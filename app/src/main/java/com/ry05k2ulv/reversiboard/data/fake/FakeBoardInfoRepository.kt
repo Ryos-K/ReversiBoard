@@ -4,6 +4,7 @@ import com.ry05k2ulv.reversiboard.data.BoardInfoRepository
 import com.ry05k2ulv.reversiboard.model.BoardInfo
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
+import kotlin.random.Random
 
 class FakeBoardInfoRepository @Inject constructor() : BoardInfoRepository {
 
@@ -25,10 +26,14 @@ class FakeBoardInfoRepository @Inject constructor() : BoardInfoRepository {
 		return boardInfoList.map { it.find { boardInfo -> boardInfo.id == id }!! }
 	}
 
-	override fun insertBoardInfo(boardInfo: BoardInfo) {
+	override fun insertBoardInfo(boardInfo: BoardInfo): Int {
+		val id = Random.nextInt()
 		boardInfoList.update {
-			it + boardInfo
+			it + boardInfo.copy(
+				id = id
+			)
 		}
+		return id
 	}
 
 	override fun updateBoardInfo(boardInfo: BoardInfo) {
